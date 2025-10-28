@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:barberstyle/data/models/barberia_model.dart';
 import 'package:barberstyle/data/services/barberia_service.dart';
+import 'package:barberstyle/views/home/barberia_detalle_window.dart';
 
 class HomeWindow extends StatefulWidget {
   @override
@@ -183,7 +184,14 @@ class _HomeWindowState extends State<HomeWindow> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BarberiaDetalleWindow(barberia: b),
+            ),
+          );
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
