@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'HomeWindow.dart';
-import 'LoginWindow.dart'; // Asegúrate de tener Firebase configurado
+import '../Home/home_window.dart';
+import '../Auth/login_window.dart'; // Asegúrate de tener Firebase configurado
 
 class SplashWindow extends StatefulWidget {
   @override

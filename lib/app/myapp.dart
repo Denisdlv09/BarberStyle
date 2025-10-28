@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:barberstyle/Views/HomeWindow.dart';
-import 'package:barberstyle/Views/LoginWindow.dart';
-import 'package:barberstyle/Views/RegisterWindow.dart';
-import 'package:barberstyle/Views/SplashWindow.dart';
+import 'package:barberstyle/Views/Home/home_window.dart';
+import 'package:barberstyle/Views/Auth/login_window.dart';
+import 'package:barberstyle/Views/Auth/register_window.dart';
+import 'package:barberstyle/Views/Splash/splash_window.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

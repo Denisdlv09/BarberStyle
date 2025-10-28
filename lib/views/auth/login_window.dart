@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:barberstyle/Views/HomeWindow.dart';
-import 'RegisterWindow.dart';
+import 'package:barberstyle/Views/Home/home_window.dart';
+import 'register_window.dart';
 
 class LoginWindow extends StatefulWidget {
   @override
