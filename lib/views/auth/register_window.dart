@@ -1,148 +1,149 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../auth/login_window.dart';
 
 class RegisterWindow extends StatefulWidget {
+  const RegisterWindow({super.key});
+
   @override
   _RegisterWindowState createState() => _RegisterWindowState();
 }
 
 class _RegisterWindowState extends State<RegisterWindow> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  String _rolSeleccionado = 'cliente'; // valor por defecto
+  bool _isLoading = false;
+
+  Future<void> _register() async {
+    final nombre = _nombreController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (nombre.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor, completa todos los campos")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Crear usuario en Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // Guardar información del usuario en Firestore
+      await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(userCredential.user!.uid)
+          .set({
+        'nombre': nombre,
+        'email': email,
+        'rol': _rolSeleccionado, // 🔹 ahora depende de la selección
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Registro exitoso")),
+      );
+
+      // Ir al login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginWindow()),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.message}")),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.grey[800]!],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Título
-                  Text(
-                    "Barber Style - Registro",
+      backgroundColor: Colors.black,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Crear Cuenta',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Campos de texto
+                _buildTextField(_nombreController, Icons.person, 'Nombre completo'),
+                const SizedBox(height: 15),
+                _buildTextField(_emailController, Icons.email, 'Correo electrónico'),
+                const SizedBox(height: 15),
+                _buildTextField(_passwordController, Icons.lock, 'Contraseña', isPassword: true),
+
+                const SizedBox(height: 25),
+
+                // 🔹 Selector de rol
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildRoleOption('cliente', 'Cliente'),
+                    const SizedBox(width: 20),
+                    _buildRoleOption('admin', 'Admin'),
+                  ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // Botón de registro
+                _isLoading
+                    ? const CircularProgressIndicator(color: Colors.redAccent)
+                    : ElevatedButton(
+                  onPressed: _register,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    'Registrarse',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 20),
+                ),
 
-                  // Campo de Nombre
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Nombre completo',
-                      prefixIcon: Icon(Icons.person, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 15),
+                const SizedBox(height: 20),
 
-                  // Campo de Email
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Correo electrónico',
-                      prefixIcon: Icon(Icons.email, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginWindow()),
+                    );
+                  },
+                  child: const Text(
+                    '¿Ya tienes cuenta? Inicia sesión',
+                    style: TextStyle(color: Colors.white70),
                   ),
-                  SizedBox(height: 15),
-
-                  // Campo de Contraseña
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Contraseña',
-                      prefixIcon: Icon(Icons.lock, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 15),
-
-                  // Campo de Confirmación de Contraseña
-                  TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Confirmar contraseña',
-                      prefixIcon: Icon(Icons.lock, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 30),
-
-                  // Botón de Registro
-                  ElevatedButton(
-                    onPressed: _register,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    child: Text(
-                      "Registrarse",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Texto de "¿Ya tienes cuenta?"
-                  MouseRegion(
-                    onEnter: (_) => _showUnderline(context, true),
-                    onExit: (_) => _showUnderline(context, false),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        "¿Ya tienes cuenta? Inicia sesión aquí",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -150,46 +151,46 @@ class _RegisterWindowState extends State<RegisterWindow> {
     );
   }
 
-  Future<void> _register() async {
-    // Aquí se puede agregar la lógica de registro (por ejemplo, con Firebase)
-    final name = _nameController.text;
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (password != confirmPassword) {
-      // Si las contraseñas no coinciden, muestra un error
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Las contraseñas no coinciden.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cerrar'),
-            ),
-          ],
+  /// 🔹 Construye un campo de texto con estilo
+  Widget _buildTextField(TextEditingController controller, IconData icon, String hint,
+      {bool isPassword = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white10,
+        prefixIcon: Icon(icon, color: Colors.white),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
         ),
-      );
-    } else {
-      // Lógica de registro (aquí debería ir la integración con Firebase)
-      // Ejemplo:
-      // FirebaseAuth.instance.createUserWithEmailAndPassword(
-      //   email: email,
-      //   password: password,
-      // );
-    }
+      ),
+    );
   }
 
-  void _showUnderline(BuildContext context, bool isHovered) {
-    // Este método cambia el estilo visual al pasar el mouse
-    final style = isHovered
-        ? TextStyle(color: Colors.white, decoration: TextDecoration.underline)
-        : TextStyle(color: Colors.white70, decoration: TextDecoration.none);
-
-    // Este estilo podría aplicarse a un widget si fuera necesario
+  /// 🔹 Construye una opción de rol (radio)
+  Widget _buildRoleOption(String value, String label) {
+    return Row(
+      children: [
+        Radio<String>(
+          value: value,
+          groupValue: _rolSeleccionado,
+          onChanged: (val) {
+            setState(() {
+              _rolSeleccionado = val!;
+            });
+          },
+          activeColor: Colors.redAccent,
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white),
+        ),
+      ],
+    );
   }
 }

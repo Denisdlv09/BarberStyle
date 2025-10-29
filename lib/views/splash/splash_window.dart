@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../Home/home_window.dart';
-import '../Auth/login_window.dart'; // Asegúrate de tener Firebase configurado
+// 🔹 Importaciones corregidas
+import '../auth/login_window.dart';
+import '../cliente/home_cliente.dart';
+import '../admin/dashboard_admin.dart';
 
 class SplashWindow extends StatefulWidget {
+  const SplashWindow({super.key});
+
   @override
   _SplashWindowState createState() => _SplashWindowState();
 }
@@ -18,8 +23,9 @@ class _SplashWindowState extends State<SplashWindow> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -33,23 +39,52 @@ class _SplashWindowState extends State<SplashWindow> with TickerProviderStateMix
 
     _controller.forward();
 
-    _navigateToNextScreen(); // Verificar si el usuario está logueado
+    _navigateToNextScreen();
   }
 
-  // Método para navegar dependiendo si el usuario está logueado o no
+  /// 🔍 Verifica el rol del usuario en Firestore y redirige
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(Duration(seconds: 3)); // Retardo de 3 segundos
+    await Future.delayed(const Duration(seconds: 3));
 
-    User? user = FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
 
-    if (user != null) {
-      // Si el usuario está logueado, ir al HomeWindow
+    if (user == null) {
+      // No hay sesión iniciada → Login
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeWindow()),
+        MaterialPageRoute(builder: (context) => LoginWindow()),
       );
-    } else {
-      // Si el usuario no está logueado, ir al LoginWindow
+      return;
+    }
+
+    try {
+      // Consultamos Firestore para saber su rol
+      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        final String rol = data?['rol'] ?? 'cliente'; // ← String: 'admin' o 'cliente'
+
+        if (rol == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeCliente()),
+          );
+        }
+      } else {
+        // Si no existe documento, lo tratamos como cliente
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeCliente()),
+        );
+      }
+    } catch (e) {
+      print('❌ Error al verificar el rol: $e');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginWindow()),
@@ -83,8 +118,8 @@ class _SplashWindowState extends State<SplashWindow> with TickerProviderStateMix
                 fit: BoxFit.cover,
               ),
             ),
-            SizedBox(height: 20),
-            CircularProgressIndicator(
+            const SizedBox(height: 20),
+            const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
             ),
           ],

@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:barberstyle/Views/Home/home_window.dart';
-import 'package:barberstyle/Views/Auth/login_window.dart';
-import 'package:barberstyle/Views/Auth/register_window.dart';
-import 'package:barberstyle/Views/Splash/splash_window.dart';
+
+// 🔹 Importa las nuevas pantallas
+import 'package:barberstyle/views/auth/login_window.dart';
+import 'package:barberstyle/views/auth/register_window.dart';
+import 'package:barberstyle/views/splash/splash_window.dart';
+import 'package:barberstyle/views/cliente/home_cliente.dart';
+import 'package:barberstyle/views/admin/dashboard_admin.dart';
+
+import 'package:barberstyle/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -17,17 +24,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Barber Style',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        primarySwatch: Colors.red,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+        ),
       ),
-      initialRoute: '/splashview',  // Ruta inicial para el SplashView
+      // 🟢 Pantalla inicial
+      initialRoute: '/splash',
       routes: {
-        '/loginview': (context) =>  LoginWindow(),
-        '/homeview': (context) =>  HomeWindow(),
-        '/registerview': (context) => RegisterWindow(),
-        '/splashview': (context) => SplashWindow(),
+        '/splash': (context) => SplashWindow(),
+        '/login': (context) => LoginWindow(),
+        '/register': (context) => RegisterWindow(),
+        '/home_cliente': (context) => const HomeCliente(),
+        '/dashboard_admin': (context) => const DashboardAdmin(),
       },
     );
   }

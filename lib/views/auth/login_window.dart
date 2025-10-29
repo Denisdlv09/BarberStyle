@@ -1,6 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:barberstyle/Views/Home/home_window.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../admin/dashboard_admin.dart';
+import '../cliente/home_cliente.dart';
 import 'register_window.dart';
 
 class LoginWindow extends StatefulWidget {
@@ -9,112 +11,122 @@ class LoginWindow extends StatefulWidget {
 }
 
 class _LoginWindowState extends State<LoginWindow> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor, completa todos los campos")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 🔹 Autenticación con Firebase
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      final uid = userCredential.user!.uid;
+
+      // 🔹 Obtener el documento del usuario desde Firestore
+      DocumentSnapshot userDoc =
+      await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+
+      if (!userDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Usuario no encontrado en la base de datos")),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final data = userDoc.data() as Map<String, dynamic>;
+      final rol = data['rol'];
+
+      // 🔹 Navegar según el rol
+      if (rol == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardAdmin()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeCliente()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.message}")),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.grey[800]!],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Título
-                  Text(
-                    "Barber Style",
+      backgroundColor: Colors.black,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Iniciar Sesión',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                _buildTextField(_emailController, Icons.email, 'Correo electrónico'),
+                const SizedBox(height: 15),
+                _buildTextField(_passwordController, Icons.lock, 'Contraseña',
+                    isPassword: true),
+                const SizedBox(height: 30),
+                _isLoading
+                    ? const CircularProgressIndicator(color: Colors.redAccent)
+                    : ElevatedButton(
+                  onPressed: _login,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                    backgroundColor: Colors.redAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    'Entrar',
                     style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
-                  SizedBox(height: 20),
-
-                  // Campo de Email
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Correo electrónico',
-                      prefixIcon: Icon(Icons.email, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => RegisterWindow()),
+                    );
+                  },
+                  child: const Text(
+                    '¿No tienes cuenta? Regístrate',
+                    style: TextStyle(color: Colors.white70),
                   ),
-                  SizedBox(height: 15),
-
-                  // Campo de Contraseña
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: 'Contraseña',
-                      prefixIcon: Icon(Icons.lock, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 30),
-
-                  // Botón de Iniciar Sesión
-                  ElevatedButton(
-                    onPressed: _signIn,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    child: Text(
-                      "Iniciar Sesión",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Texto de "¿No tienes cuenta?"
-                  MouseRegion(
-                    onEnter: (_) => _showUnderline(context, true),
-                    onExit: (_) => _showUnderline(context, false),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => RegisterWindow()),
-                        );
-                      },
-                      child: Text(
-                        "¿No tienes cuenta? Regístrate aquí",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -122,47 +134,23 @@ class _LoginWindowState extends State<LoginWindow> {
     );
   }
 
-  Future<void> _signIn() async {
-    try {
-      // Obtener los valores de los campos de texto
-      final email = _emailController.text;
-      final password = _passwordController.text;
-
-      // Intentar iniciar sesión con Firebase
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Si el inicio de sesión es exitoso, navegar a HomeView
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeWindow()),
-      );
-    } catch (e) {
-      // Si ocurre un error, mostrar un mensaje
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Hubo un error al iniciar sesión: $e'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cerrar'),
-            ),
-          ],
+  Widget _buildTextField(TextEditingController controller, IconData icon, String hint,
+      {bool isPassword = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white10,
+        prefixIcon: Icon(icon, color: Colors.white),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white70),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
         ),
-      );
-    }
-  }
-
-  void _showUnderline(BuildContext context, bool isHovered) {
-    // Actualiza el estilo de texto para subrayarlo
-    final style = isHovered
-        ? TextStyle(color: Colors.white, decoration: TextDecoration.underline)
-        : TextStyle(color: Colors.white70, decoration: TextDecoration.none);
+      ),
+    );
   }
 }
