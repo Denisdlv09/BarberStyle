@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// 🔹 Importaciones corregidas
+// 🔹 Importaciones
 import '../auth/login_window.dart';
 import '../cliente/home_cliente.dart';
 import '../admin/dashboard_admin.dart';
+import '../admin/crear_barberia.dart';
 
 class SplashWindow extends StatefulWidget {
   const SplashWindow({super.key});
@@ -58,19 +59,32 @@ class _SplashWindowState extends State<SplashWindow> with TickerProviderStateMix
     }
 
     try {
-      // Consultamos Firestore para saber su rol
-      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
+      // Consultamos Firestore para saber su rol y barbería
+      final userDoc =
+      await FirebaseFirestore.instance.collection('usuarios').doc(user.uid).get();
 
-      if (doc.exists) {
-        final data = doc.data();
-        final String rol = data?['rol'] ?? 'cliente'; // ← String: 'admin' o 'cliente'
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        final String rol = data?['rol'] ?? 'cliente';
+        final String? barberiaId = data?['barberiaId'];
 
         if (rol == 'admin') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-          );
+          // Si es admin, comprobamos si tiene barbería creada
+          if (barberiaId == null || barberiaId.isEmpty) {
+            // No tiene barbería aún → pantalla de creación
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CrearBarberia()),
+            );
+          } else {
+            // Ya tiene barbería → dashboard
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+            );
+          }
         } else {
+          // Si es cliente → pantalla principal
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeCliente()),
@@ -84,7 +98,7 @@ class _SplashWindowState extends State<SplashWindow> with TickerProviderStateMix
         );
       }
     } catch (e) {
-      print('❌ Error al verificar el rol: $e');
+      print('❌ Error al verificar el rol o barbería: $e');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginWindow()),
