@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../admin/dashboard_admin.dart';
+import '../admin/crear_barberia.dart';
 import '../cliente/home_cliente.dart';
 import 'register_window.dart';
 
@@ -35,7 +37,7 @@ class _LoginWindowState extends State<LoginWindow> {
 
       final uid = userCredential.user!.uid;
 
-      // 🔹 Obtener el documento del usuario desde Firestore
+      // 🔹 Obtener datos del usuario desde Firestore
       DocumentSnapshot userDoc =
       await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
 
@@ -50,21 +52,42 @@ class _LoginWindowState extends State<LoginWindow> {
       final data = userDoc.data() as Map<String, dynamic>;
       final rol = data['rol'];
 
-      // 🔹 Navegar según el rol
+      // 🔹 Verificar rol y redirigir
       if (rol == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => DashboardAdmin()),
-        );
+        // Buscar si ya tiene una barbería registrada
+        QuerySnapshot barberiaQuery = await FirebaseFirestore.instance
+            .collection('barberias')
+            .where('propietarioId', isEqualTo: uid)
+            .limit(1)
+            .get();
+
+        if (barberiaQuery.docs.isEmpty) {
+          // No tiene barbería → redirigir a crear barbería
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CrearBarberia()),
+          );
+        } else {
+          // Ya tiene barbería → redirigir al dashboard
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
+          );
+        }
       } else {
+        // Si es cliente → ir al HomeCliente
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeCliente()),
+          MaterialPageRoute(builder: (context) => const HomeCliente()),
         );
       }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.message}")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Ocurrió un error inesperado: $e")),
       );
     } finally {
       setState(() => _isLoading = false);
