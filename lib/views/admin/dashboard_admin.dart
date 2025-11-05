@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+// 🔹 Importaciones de pantallas
 import '../admin/crear_barberia.dart';
+import '../admin/editar_barberia.dart';
+import '../admin/gestionar_servicios.dart';
+import '../admin/resenas_admin.dart';
+import '../admin/citas_admin.dart';
+import '../auth/login_window.dart'; // ✅ Importamos para volver tras cerrar sesión
 
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
@@ -13,6 +20,7 @@ class DashboardAdmin extends StatefulWidget {
 class _DashboardAdminState extends State<DashboardAdmin> {
   final user = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? barberiaData;
+  String? barberiaId;
   bool isLoading = true;
 
   @override
@@ -21,21 +29,23 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     _loadBarberiaData();
   }
 
-  /// 🔍 Carga la barbería del admin desde Firebase
+  /// 🔍 Carga la barbería asociada al administrador desde Firestore
   Future<void> _loadBarberiaData() async {
     try {
       final query = await FirebaseFirestore.instance
           .collection('barberias')
           .where('propietarioId', isEqualTo: user!.uid)
+          .limit(1)
           .get();
 
       if (query.docs.isNotEmpty) {
         setState(() {
           barberiaData = query.docs.first.data();
+          barberiaId = query.docs.first.id;
           isLoading = false;
         });
       } else {
-        // Si no tiene barbería creada → lo mandamos a CrearBarberia
+        // 🔸 Si el admin no tiene barbería creada → ir a crearla
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -44,8 +54,34 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         }
       }
     } catch (e) {
-      print('❌ Error al cargar la barbería: $e');
+      debugPrint('❌ Error al cargar la barbería: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar la barbería: $e')),
+        );
+      }
       setState(() => isLoading = false);
+    }
+  }
+
+  /// 🔹 Cierra sesión correctamente y redirige al login
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => LoginWindow()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      debugPrint("❌ Error al cerrar sesión: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al cerrar sesión: $e")),
+        );
+      }
     }
   }
 
@@ -62,10 +98,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
-            },
+            onPressed: () => _logout(context), // ✅ corregido
           ),
         ],
       ),
@@ -85,7 +118,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Logo o imagen
+            // 🔹 Imagen / Logo de la barbería
             CircleAvatar(
               radius: 60,
               backgroundColor: Colors.grey.shade800,
@@ -95,12 +128,13 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   : null,
               child: (barberiaData!['imagenLogo'] == null ||
                   barberiaData!['imagenLogo'].toString().isEmpty)
-                  ? const Icon(Icons.store, size: 60, color: Colors.white70)
+                  ? const Icon(Icons.store,
+                  size: 60, color: Colors.white70)
                   : null,
             ),
             const SizedBox(height: 20),
 
-            // Nombre de la barbería
+            // 🔹 Nombre
             Text(
               barberiaData!['nombre'] ?? 'Sin nombre',
               style: const TextStyle(
@@ -111,22 +145,25 @@ class _DashboardAdminState extends State<DashboardAdmin> {
             ),
             const SizedBox(height: 10),
 
-            // Dirección
+            // 🔹 Dirección
             Text(
-              barberiaData!['direccion'] ?? 'Dirección no especificada',
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              barberiaData!['direccion'] ??
+                  'Dirección no especificada',
+              style: const TextStyle(
+                  color: Colors.white70, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
 
-            // Teléfono
+            // 🔹 Teléfono
             Text(
               'Tel: ${barberiaData!['telefono'] ?? 'No disponible'}',
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              style: const TextStyle(
+                  color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 20),
 
-            // Descripción
+            // 🔹 Descripción
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -136,34 +173,73 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               child: Text(
                 barberiaData!['descripcion'] ??
                     'No hay descripción disponible.',
-                style: const TextStyle(color: Colors.white70, fontSize: 15),
+                style: const TextStyle(
+                    color: Colors.white70, fontSize: 15),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 30),
 
-            // Botones de gestión
+            const Divider(color: Colors.white24, thickness: 1),
+            const SizedBox(height: 20),
+
+            // 🔹 Botones de gestión
             _buildActionButton(
               icon: Icons.edit,
               text: "Editar información",
               onPressed: () {
-                // 🔹 Aquí luego redirigimos a la pantalla para editar barbería
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        EditarBarberia(barberiaId: barberiaId!),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 15),
+
             _buildActionButton(
               icon: Icons.design_services,
               text: "Gestionar servicios",
               onPressed: () {
-                // 🔹 Aquí luego redirigimos a la pantalla de servicios
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GestionarServicios(barberiaId: barberiaId!),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 15),
+
             _buildActionButton(
-              icon: Icons.image,
-              text: "Gestionar imágenes",
+              icon: Icons.calendar_month,
+              text: "Ver citas",
               onPressed: () {
-                // 🔹 Aquí luego añadiremos galería de imágenes
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CitasAdmin(barberiaId: barberiaId!),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 15),
+
+            _buildActionButton(
+              icon: Icons.reviews,
+              text: "Ver reseñas",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ResenasAdmin(barberiaId: barberiaId!),
+                  ),
+                );
               },
             ),
           ],
@@ -172,10 +248,12 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
-  Widget _buildActionButton(
-      {required IconData icon,
-        required String text,
-        required VoidCallback onPressed}) {
+  /// 🔘 Constructor de botones reutilizable
+  Widget _buildActionButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onPressed,
+  }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
