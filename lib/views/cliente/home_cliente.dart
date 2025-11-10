@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/cita_model.dart';
 import '../auth/login_window.dart';
 import 'barberia_detalle.dart';
+import 'configuracion_usuario.dart'; // 🔹 Nueva pantalla de configuración
 
 class HomeCliente extends StatefulWidget {
   const HomeCliente({super.key});
@@ -16,6 +17,27 @@ class HomeCliente extends StatefulWidget {
 
 class _HomeClienteState extends State<HomeCliente> {
   final user = FirebaseAuth.instance.currentUser;
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  /// 🔹 Cargar datos del usuario
+  Future<void> _loadUserData() async {
+    if (user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(user!.uid)
+        .get();
+    if (doc.exists) {
+      setState(() {
+        userData = doc.data();
+      });
+    }
+  }
 
   /// 🔹 Cerrar sesión
   Future<void> _logout() async {
@@ -31,7 +53,6 @@ class _HomeClienteState extends State<HomeCliente> {
   /// 🔹 Cancelar una cita (elimina en ambas colecciones)
   Future<void> _cancelarCita(CitaModel cita) async {
     try {
-      // Eliminar de barbería
       await FirebaseFirestore.instance
           .collection('barberias')
           .doc(cita.barberiaId)
@@ -39,7 +60,6 @@ class _HomeClienteState extends State<HomeCliente> {
           .doc(cita.id)
           .delete();
 
-      // Eliminar de usuario
       await FirebaseFirestore.instance
           .collection('usuarios')
           .doc(cita.clienteId)
@@ -70,13 +90,6 @@ class _HomeClienteState extends State<HomeCliente> {
             'Barberías 💈',
             style: TextStyle(color: Colors.white),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              tooltip: "Cerrar sesión",
-              onPressed: _logout,
-            ),
-          ],
           bottom: const TabBar(
             indicatorColor: Colors.white,
             tabs: [
@@ -85,6 +98,53 @@ class _HomeClienteState extends State<HomeCliente> {
             ],
           ),
         ),
+
+        // 🔹 Drawer (menú lateral)
+        drawer: Drawer(
+          backgroundColor: Colors.grey[900],
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(color: Colors.redAccent),
+                accountName: Text(
+                  userData?['nombre'] ?? 'Usuario',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                accountEmail: Text(
+                  userData?['telefono'] ?? 'Sin teléfono',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                currentAccountPicture: const CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 40, color: Colors.redAccent),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings, color: Colors.white70),
+                title: const Text("Configuración",
+                    style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ConfiguracionUsuario(),
+                    ),
+                  ).then((_) => _loadUserData()); // recargar si cambia datos
+                },
+              ),
+              const Divider(color: Colors.white24),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.redAccent),
+                title: const Text("Cerrar sesión",
+                    style: TextStyle(color: Colors.redAccent)),
+                onTap: _logout,
+              ),
+            ],
+          ),
+        ),
+
         body: TabBarView(
           children: [
             _buildListaBarberias(),
