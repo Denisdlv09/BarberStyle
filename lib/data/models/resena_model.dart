@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+/// 📌 Modelo de Reseña
 class ReviewModel {
   final String id;
   final String userId;
@@ -22,7 +25,7 @@ class ReviewModel {
       barberiaId: map['barberiaId'] ?? '',
       puntuacion: (map['puntuacion'] ?? 0).toDouble(),
       comentario: map['comentario'] ?? '',
-      fecha: DateTime.parse(map['fecha']),
+      fecha: _parseDate(map['fecha']),
     );
   }
 
@@ -32,7 +35,16 @@ class ReviewModel {
       'barberiaId': barberiaId,
       'puntuacion': puntuacion,
       'comentario': comentario,
-      'fecha': fecha.toIso8601String(),
+      // Firestore guarda fechas como Timestamps, no strings.
+      'fecha': Timestamp.fromDate(fecha),
     };
+  }
+
+  /// 🔹 Permite recibir Timestamp, String o DateTime sin explotar.
+  static DateTime _parseDate(dynamic value) {
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    if (value is DateTime) return value;
+    return DateTime.now();
   }
 }

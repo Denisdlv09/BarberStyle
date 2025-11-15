@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../viewmodels/barberias_viewmodel.dart';
 import 'dashboard_admin.dart';
 
 class CrearBarberia extends StatefulWidget {
@@ -11,132 +13,102 @@ class CrearBarberia extends StatefulWidget {
 }
 
 class _CrearBarberiaState extends State<CrearBarberia> {
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _direccionController = TextEditingController();
-  final TextEditingController _descripcionController = TextEditingController();
-  final TextEditingController _telefonoController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
-  bool _isLoading = false;
-
-  Future<void> _crearBarberia() async {
-    final nombre = _nombreController.text.trim();
-    final direccion = _direccionController.text.trim();
-    final descripcion = _descripcionController.text.trim();
-    final telefono = _telefonoController.text.trim();
-
-    if (nombre.isEmpty || direccion.isEmpty || descripcion.isEmpty || telefono.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, completa todos los campos")),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Error: no hay usuario autenticado")),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // 🔹 Guardar barbería en Firestore
-      await FirebaseFirestore.instance.collection('barberias').add({
-        'nombre': nombre,
-        'direccion': direccion,
-        'descripcion': descripcion,
-        'telefono': telefono,
-        'propietarioId': user.uid,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Barbería creada correctamente")),
-      );
-
-      // 🔹 Redirigir al Dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al crear la barbería: $e")),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
+  final _nombreCtrl = TextEditingController();
+  final _direccionCtrl = TextEditingController();
+  final _telefonoCtrl = TextEditingController();
+  final _descripcionCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<BarberiasViewModel>();
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        title:
+        const Text("Crear Barbería", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
-        title: const Text("Crear Barbería"),
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              _buildTextField(_nombreController, Icons.store, "Nombre de la barbería"),
-              const SizedBox(height: 15),
-              _buildTextField(_direccionController, Icons.location_on, "Dirección"),
-              const SizedBox(height: 15),
-              _buildTextField(_telefonoController, Icons.phone, "Teléfono"),
-              const SizedBox(height: 15),
-              _buildTextField(
-                _descripcionController,
-                Icons.description,
-                "Descripción",
-                maxLines: 3,
-              ),
-              const SizedBox(height: 30),
-              _isLoading
-                  ? const CircularProgressIndicator(color: Colors.redAccent)
-                  : ElevatedButton.icon(
-                onPressed: _crearBarberia,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+
+                _field(_nombreCtrl, Icons.store, "Nombre de la barbería"),
+                const SizedBox(height: 15),
+                _field(_direccionCtrl, Icons.location_on, "Dirección"),
+                const SizedBox(height: 15),
+                _field(_telefonoCtrl, Icons.phone, "Teléfono"),
+                const SizedBox(height: 15),
+                _field(_descripcionCtrl, Icons.description, "Descripción",
+                    maxLines: 3),
+                const SizedBox(height: 30),
+
+                vm.isLoading
+                    ? const CircularProgressIndicator(color: Colors.redAccent)
+                    : ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle,
+                      color: Colors.white),
+                  label: const Text(
+                    "Crear Barbería",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
-                ),
-                icon: const Icon(Icons.check_circle, color: Colors.white),
-                label: const Text(
-                  "Crear Barbería",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
                   ),
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
+                    if (user == null) return;
+
+                    await vm.crearBarberia({
+                      'nombre': _nombreCtrl.text.trim(),
+                      'direccion': _direccionCtrl.text.trim(),
+                      'descripcion': _descripcionCtrl.text.trim(),
+                      'telefono': _telefonoCtrl.text.trim(),
+                      'propietarioId': user.uid,
+                      'createdAt': DateTime.now(),
+                    });
+
+                    if (context.mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const DashboardAdmin()),
+                      );
+                    }
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, IconData icon, String label,
+  Widget _field(TextEditingController c, IconData i, String label,
       {int maxLines = 1}) {
-    return TextField(
-      controller: controller,
+    return TextFormField(
+      controller: c,
       maxLines: maxLines,
       style: const TextStyle(color: Colors.white),
+      validator: (v) => (v == null || v.isEmpty) ? "Campo obligatorio" : null,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white10,
-        prefixIcon: Icon(icon, color: Colors.white),
+        prefixIcon: Icon(i, color: Colors.white),
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         border: OutlineInputBorder(

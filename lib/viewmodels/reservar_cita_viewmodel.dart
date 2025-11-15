@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class ReservarCitaViewModel extends ChangeNotifier {
+  final _db = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  // ----------------------------
+  // Estado
+  // ----------------------------
+  String? servicioSeleccionado;
+  DateTime? fechaSeleccionada;
+  String? horaSeleccionada;
+
+  bool cargandoHoras = false;
+  bool guardando = false;
+
+  List<String> horasOcupadas = [];
+  List<String> horasDisponibles = [];
+
+  /// Horario fijo
+  final List<String> horasTotales = const [
+    "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30",
+    "15:00", "15:30", "16:00", "16:30",
+    "17:00", "17:30", "18:00", "18:30",
+    "19:00", "19:30", "20:00", "20:30",
+  ];
+
+  // ----------------------------
+  // Seleccion de servicio
+  // ----------------------------
+  void seleccionarServicio(String? servicio) {
+    servicioSeleccionado = servicio;
+    notifyListeners();
+  }
+
+  // ----------------------------
+  // Seleccion de fecha
+  // ----------------------------
+  Future<void> seleccionarFecha(DateTime fecha, String barberiaId) async {
+    fechaSeleccionada = fecha;
+    horaSeleccionada = null;
+    await cargarHorasOcupadas(barberiaId);
+    notifyListeners();
+  }
+
+  // ----------------------------
+  // Cargar horas ocupadas
+  // ----------------------------
+  Future<void> cargarHorasOcupadas(String barberiaId) async {
+    if (fechaSeleccionada == null) return;
+
+    cargandoHoras = true;
+    notifyListeners();
+
+    try {
+      final fechaStr = DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
+
+      final snap = await _db
+          .collection('barberias')
+          .doc(barberiaId)
+          .collection('citas')
+          .where('fechaStr', isEqualTo: fechaStr)
+          .get();
+
+      horasOcupadas = snap.docs.map((e) => e['hora'] as String).toList();
+
+      horasDisponibles = horasTotales
+          .where((h) => !horasOcupadas.contains(h))
+          .toList();
+    } catch (_) {}
+
+    cargandoHoras = false;
+    notifyListeners();
+  }
+
+  // ----------------------------
+  // Seleccionar hora
+  // ----------------------------
+  void seleccionarHora(String hora) {
+    horaSeleccionada = hora;
+    notifyListeners();
+  }
+
+  // ----------------------------
+  // Guardar cita
+  // ----------------------------
+  Future<String?> crearCita({
+    required String barberiaId,
+    required String barberiaNombre,
+  }) async {
+    if (servicioSeleccionado == null ||
+        fechaSeleccionada == null ||
+        horaSeleccionada == null) {
+      return "Completa todos los campos";
+    }
+
+    guardando = true;
+    notifyListeners();
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return "Usuario no autenticado";
+
+      final userDoc = await _db.collection('usuarios').doc(user.uid).get();
+      final nombreCliente = userDoc.data()?["nombre"] ?? "Cliente";
+
+      final fechaStr = DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
+
+      final partes = horaSeleccionada!.split(":");
+      final fechaFinal = DateTime(
+        fechaSeleccionada!.year,
+        fechaSeleccionada!.month,
+        fechaSeleccionada!.day,
+        int.parse(partes[0]),
+        int.parse(partes[1]),
+      );
+
+      // Validación: que la hora no esté ocupada
+      final check = await _db
+          .collection('barberias')
+          .doc(barberiaId)
+          .collection('citas')
+          .where('fechaStr', isEqualTo: fechaStr)
+          .where('hora', isEqualTo: horaSeleccionada)
+          .get();
+
+      if (check.docs.isNotEmpty) {
+        guardando = false;
+        notifyListeners();
+        return "La hora ya está ocupada";
+      }
+
+      final data = {
+        'clienteId': user.uid,
+        'clienteNombre': nombreCliente,
+        'barberiaId': barberiaId,
+        'barberiaNombre': barberiaNombre,
+        'servicio': servicioSeleccionado,
+        'fecha': Timestamp.fromDate(fechaFinal),
+        'fechaStr': fechaStr,
+        'hora': horaSeleccionada,
+        'estado': 'pendiente',
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      final citaRef = _db
+          .collection("barberias")
+          .doc(barberiaId)
+          .collection("citas")
+          .doc();
+
+      await citaRef.set(data);
+
+      await _db
+          .collection("usuarios")
+          .doc(user.uid)
+          .collection("citas")
+          .doc(citaRef.id)
+          .set(data);
+
+      guardando = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      guardando = false;
+      notifyListeners();
+      return "Error al guardar cita: $e";
+    }
+  }
+}

@@ -1,177 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/widgets/custom_button.dart';
+import '../../core/widgets/custom_text_field.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../core/utils/validators.dart';
+
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/barberias_viewmodel.dart';
 
 import '../admin/dashboard_admin.dart';
-import '../admin/crear_barberia.dart';
 import '../cliente/home_cliente.dart';
 import 'register_window.dart';
+import '../admin/crear_barberia.dart';
 
 class LoginWindow extends StatefulWidget {
+  const LoginWindow({super.key});
+
   @override
-  _LoginWindowState createState() => _LoginWindowState();
+  State<LoginWindow> createState() => _LoginWindowState();
 }
 
 class _LoginWindowState extends State<LoginWindow> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
 
-  Future<void> _login() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-    if (email.isEmpty || password.isEmpty) {
+  Future<void> _login(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final authVM = context.read<AuthViewModel>();
+    final barberiaVM = context.read<BarberiasViewModel>();
+
+    final user = await authVM.login(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, completa todos los campos")),
+        SnackBar(content: Text(authVM.errorMessage ?? "Error al iniciar sesión")),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    try {
-      // 🔹 Autenticación con Firebase
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
-
-      final uid = userCredential.user!.uid;
-
-      // 🔹 Obtener datos del usuario desde Firestore
-      DocumentSnapshot userDoc =
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
-
-      if (!userDoc.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Usuario no encontrado en la base de datos")),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final data = userDoc.data() as Map<String, dynamic>;
-      final rol = data['rol'];
-
-      // 🔹 Verificar rol y redirigir
-      if (rol == 'admin') {
-        // Buscar si ya tiene una barbería registrada
-        QuerySnapshot barberiaQuery = await FirebaseFirestore.instance
-            .collection('barberias')
-            .where('propietarioId', isEqualTo: uid)
-            .limit(1)
-            .get();
-
-        if (barberiaQuery.docs.isEmpty) {
-          // No tiene barbería → redirigir a crear barbería
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const CrearBarberia()),
-          );
-        } else {
-          // Ya tiene barbería → redirigir al dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardAdmin()),
-          );
-        }
-      } else {
-        // Si es cliente → ir al HomeCliente
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeCliente()),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.message}")),
+    if (user.rol == "cliente") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeCliente()),
       );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ocurrió un error inesperado: $e")),
+      return;
+    }
+
+    /// Admin →
+    await barberiaVM.loadBarberiaByAdmin(user.id);
+
+    if (!mounted) return;
+
+    if (barberiaVM.barberiaId == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CrearBarberia()),
       );
-    } finally {
-      setState(() => _isLoading = false);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardAdmin()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authVM = context.watch<AuthViewModel>();
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24),
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Iniciar Sesión',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Text("Iniciar Sesión", style: AppTextStyles.title),
+                  const SizedBox(height: 40),
+
+                  CustomTextField(
+                    label: "Correo electrónico",
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: Validators.validateEmail,
                   ),
-                ),
-                const SizedBox(height: 40),
-                _buildTextField(_emailController, Icons.email, 'Correo electrónico'),
-                const SizedBox(height: 15),
-                _buildTextField(_passwordController, Icons.lock, 'Contraseña',
-                    isPassword: true),
-                const SizedBox(height: 30),
-                _isLoading
-                    ? const CircularProgressIndicator(color: Colors.redAccent)
-                    : ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
-                    backgroundColor: Colors.redAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                  const SizedBox(height: 15),
+
+                  CustomTextField(
+                    label: "Contraseña",
+                    controller: _passwordController,
+                    isPassword: true,
+                    validator: Validators.validatePassword,
                   ),
-                  child: const Text(
-                    'Entrar',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  const SizedBox(height: 25),
+
+                  authVM.isLoading
+                      ? const CircularProgressIndicator(color: AppColors.primary)
+                      : CustomButton(
+                    text: "Entrar",
+                    onPressed: () => _login(context),
                   ),
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterWindow()),
-                    );
-                  },
-                  child: const Text(
-                    '¿No tienes cuenta? Regístrate',
-                    style: TextStyle(color: Colors.white70),
+
+                  const SizedBox(height: 20),
+
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const RegisterWindow()),
+                      );
+                    },
+                    child: const Text("¿No tienes cuenta? Regístrate"),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, IconData icon, String hint,
-      {bool isPassword = false}) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white10,
-        prefixIcon: Icon(icon, color: Colors.white),
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
         ),
       ),
     );

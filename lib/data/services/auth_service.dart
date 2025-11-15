@@ -6,21 +6,23 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Registrar usuario guardando rol en Firestore
-  Future<UserModel?> register({
+  /// -------------------------------------------------------
+  /// 🔹 Registrar usuario
+  /// -------------------------------------------------------
+  Future<UserModel> register({
     required String nombre,
     required String email,
     required String telefono,
     required String password,
-    required String rol, // 'admin' o 'cliente'
+    required String rol,
   }) async {
     try {
-      UserCredential cred = await _auth.createUserWithEmailAndPassword(
+      final cred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      final userModel = UserModel(
+      final user = UserModel(
         id: cred.user!.uid,
         nombre: nombre,
         email: email,
@@ -28,35 +30,52 @@ class AuthService {
         rol: rol,
       );
 
-      await _db.collection('usuarios').doc(userModel.id).set(userModel.toMap());
-      return userModel;
+      await _db.collection("usuarios").doc(user.id).set(user.toMap());
+      return user;
     } catch (e) {
-      print('AuthService.register error: $e');
-      return null;
+      throw Exception("Error registrando usuario: $e");
     }
   }
 
-  // Login y devuelve el modelo de usuario (datos desde Firestore)
-  Future<UserModel?> signIn(String email, String password) async {
+  /// -------------------------------------------------------
+  /// 🔹 Login
+  /// -------------------------------------------------------
+  Future<UserModel> signIn(String email, String password) async {
     try {
-      UserCredential cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      final doc = await _db.collection('usuarios').doc(cred.user!.uid).get();
-      if (!doc.exists) return null;
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final doc = await _db.collection("usuarios").doc(cred.user!.uid).get();
+
+      if (!doc.exists) {
+        throw Exception("El usuario no existe en Firestore.");
+      }
+
+      return UserModel.fromMap(doc.data()!, doc.id);
     } catch (e) {
-      print('AuthService.signIn error: $e');
-      return null;
+      throw Exception("Error iniciando sesión: $e");
     }
   }
 
-  Future<UserModel?> currentUserModel() async {
-    User? user = _auth.currentUser;
+  /// -------------------------------------------------------
+  /// 🔹 Obtener usuario actual desde Firestore
+  ///     (Método que usa AuthViewModel)
+  /// -------------------------------------------------------
+  Future<UserModel?> getCurrentUser() async {
+    final user = _auth.currentUser;
     if (user == null) return null;
-    final doc = await _db.collection('usuarios').doc(user.uid).get();
+
+    final doc = await _db.collection("usuarios").doc(user.uid).get();
     if (!doc.exists) return null;
-    return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+
+    return UserModel.fromMap(doc.data()!, doc.id);
   }
 
+  /// -------------------------------------------------------
+  /// 🔹 Logout
+  /// -------------------------------------------------------
   Future<void> signOut() async {
     await _auth.signOut();
   }

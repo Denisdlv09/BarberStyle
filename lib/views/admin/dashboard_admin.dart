@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// 🔹 Importaciones de pantallas
-import '../admin/crear_barberia.dart';
-import '../admin/editar_barberia.dart';
-import '../admin/gestionar_servicios.dart';
-import '../admin/resenas_admin.dart';
-import '../admin/citas_admin.dart';
-import '../auth/login_window.dart'; // ✅ Importamos para volver tras cerrar sesión
+import '../../viewmodels/barberias_viewmodel.dart';
+import '../auth/login_window.dart';
+import 'crear_barberia.dart';
+import 'editar_barberia.dart';
+import 'gestionar_servicios.dart';
+import 'citas_admin.dart';
+import 'resenas_admin.dart';
 
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
@@ -18,247 +18,174 @@ class DashboardAdmin extends StatefulWidget {
 }
 
 class _DashboardAdminState extends State<DashboardAdmin> {
-  final user = FirebaseAuth.instance.currentUser;
-  Map<String, dynamic>? barberiaData;
-  String? barberiaId;
-  bool isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadBarberiaData();
-  }
-
-  /// 🔍 Carga la barbería asociada al administrador desde Firestore
-  Future<void> _loadBarberiaData() async {
-    try {
-      final query = await FirebaseFirestore.instance
-          .collection('barberias')
-          .where('propietarioId', isEqualTo: user!.uid)
-          .limit(1)
-          .get();
-
-      if (query.docs.isNotEmpty) {
-        setState(() {
-          barberiaData = query.docs.first.data();
-          barberiaId = query.docs.first.id;
-          isLoading = false;
-        });
-      } else {
-        // 🔸 Si el admin no tiene barbería creada → ir a crearla
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const CrearBarberia()),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('❌ Error al cargar la barbería: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar la barbería: $e')),
-        );
-      }
-      setState(() => isLoading = false);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      context.read<BarberiasViewModel>().loadBarberiaByAdmin(user.uid);
     }
   }
 
-  /// 🔹 Cierra sesión correctamente y redirige al login
-  Future<void> _logout(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => LoginWindow()),
-              (route) => false,
-        );
-      }
-    } catch (e) {
-      debugPrint("❌ Error al cerrar sesión: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error al cerrar sesión: $e")),
-        );
-      }
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginWindow()),
+            (route) => false,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<BarberiasViewModel>();
+
+    if (vm.isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.redAccent)),
+      );
+    }
+
+    if (vm.barberiaData == null) {
+      return const CrearBarberia();
+    }
+
+    final data = vm.barberiaData!;
+    final id = vm.barberiaId!;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        backgroundColor: Colors.redAccent,
         title: const Text(
-          'Panel de Administrador',
+          "Panel de Administrador",
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.redAccent,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _logout(context), // ✅ corregido
-          ),
+            onPressed: _logout,
+          )
         ],
       ),
-      body: isLoading
-          ? const Center(
-        child: CircularProgressIndicator(color: Colors.redAccent),
-      )
-          : barberiaData == null
-          ? const Center(
-        child: Text(
-          "No se encontró información de la barbería.",
-          style: TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-      )
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // 🔹 Imagen / Logo de la barbería
-            CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.grey.shade800,
-              backgroundImage: (barberiaData!['imagenLogo'] != null &&
-                  barberiaData!['imagenLogo'].toString().isNotEmpty)
-                  ? NetworkImage(barberiaData!['imagenLogo'])
-                  : null,
-              child: (barberiaData!['imagenLogo'] == null ||
-                  barberiaData!['imagenLogo'].toString().isEmpty)
-                  ? const Icon(Icons.store,
-                  size: 60, color: Colors.white70)
-                  : null,
-            ),
-            const SizedBox(height: 20),
+      body: _buildContent(data, id),
+    );
+  }
 
-            // 🔹 Nombre
-            Text(
-              barberiaData!['nombre'] ?? 'Sin nombre',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+  Widget _buildContent(Map<String, dynamic> data, String id) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 60,
+            backgroundColor: Colors.grey.shade800,
+            backgroundImage: (data['imagenLogo'] != null &&
+                data['imagenLogo'].toString().isNotEmpty)
+                ? NetworkImage(data['imagenLogo'])
+                : null,
+            child: (data['imagenLogo'] == null ||
+                data['imagenLogo'].toString().isEmpty)
+                ? const Icon(Icons.store, size: 60, color: Colors.white70)
+                : null,
+          ),
+          const SizedBox(height: 20),
+
+          Text(
+            data['nombre'] ?? 'Sin nombre',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          Text(
+            data['direccion'] ?? 'Dirección no especificada',
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+          const SizedBox(height: 10),
+
+          Text(
+            'Tel: ${data['telefono'] ?? 'No disponible'}',
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+          const SizedBox(height: 20),
+
+          _descriptionBox(data['descripcion'] ?? "Sin descripción"),
+
+          const SizedBox(height: 30),
+          const Divider(color: Colors.white24),
+          const SizedBox(height: 20),
+
+          _buildButton(Icons.edit, "Editar información", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EditarBarberia(barberiaId: id),
               ),
-            ),
-            const SizedBox(height: 10),
+            );
+          }),
 
-            // 🔹 Dirección
-            Text(
-              barberiaData!['direccion'] ??
-                  'Dirección no especificada',
-              style: const TextStyle(
-                  color: Colors.white70, fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-
-            // 🔹 Teléfono
-            Text(
-              'Tel: ${barberiaData!['telefono'] ?? 'No disponible'}',
-              style: const TextStyle(
-                  color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-
-            // 🔹 Descripción
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 15),
+          _buildButton(Icons.design_services, "Gestionar servicios", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GestionarServicios(barberiaId: id),
               ),
-              child: Text(
-                barberiaData!['descripcion'] ??
-                    'No hay descripción disponible.',
-                style: const TextStyle(
-                    color: Colors.white70, fontSize: 15),
-                textAlign: TextAlign.center,
+            );
+          }),
+
+          const SizedBox(height: 15),
+          _buildButton(Icons.calendar_month, "Ver citas", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CitasAdmin(barberiaId: id),
               ),
-            ),
-            const SizedBox(height: 30),
+            );
+          }),
 
-            const Divider(color: Colors.white24, thickness: 1),
-            const SizedBox(height: 20),
-
-            // 🔹 Botones de gestión
-            _buildActionButton(
-              icon: Icons.edit,
-              text: "Editar información",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        EditarBarberia(barberiaId: barberiaId!),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 15),
-
-            _buildActionButton(
-              icon: Icons.design_services,
-              text: "Gestionar servicios",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        GestionarServicios(barberiaId: barberiaId!),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 15),
-
-            _buildActionButton(
-              icon: Icons.calendar_month,
-              text: "Ver citas",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        CitasAdmin(barberiaId: barberiaId!),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 15),
-
-            _buildActionButton(
-              icon: Icons.reviews,
-              text: "Ver reseñas",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ResenasAdmin(barberiaId: barberiaId!),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          const SizedBox(height: 15),
+          _buildButton(Icons.reviews, "Ver reseñas", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ResenasAdmin(barberiaId: id),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
 
-  /// 🔘 Constructor de botones reutilizable
-  Widget _buildActionButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback onPressed,
-  }) {
+  Widget _descriptionBox(String text) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white70, fontSize: 15),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildButton(IconData icon, String text, VoidCallback onTap) {
     return ElevatedButton.icon(
-      onPressed: onPressed,
+      onPressed: onTap,
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.redAccent,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 30),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       icon: Icon(icon, color: Colors.white),

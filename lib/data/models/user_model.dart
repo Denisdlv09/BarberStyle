@@ -1,9 +1,10 @@
+/// 📌 Modelo de Usuario
 class UserModel {
   final String id;
   final String nombre;
   final String email;
   final String telefono;
-  final String rol; // 'admin' o 'cliente'
+  final String rol; // admin | cliente
 
   UserModel({
     required this.id,
