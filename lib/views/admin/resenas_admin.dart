@@ -37,7 +37,10 @@ class ResenasAdmin extends StatelessWidget {
               _ratingHeader(rating),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: ref.collection('resenas').orderBy('fecha', descending: true).snapshots(),
+                  stream: ref
+                      .collection('resenas')
+                      .orderBy('fecha', descending: true)
+                      .snapshots(),
                   builder: (_, snap) {
                     if (!snap.hasData) {
                       return const Center(
@@ -48,8 +51,10 @@ class ResenasAdmin extends StatelessWidget {
                     final docs = snap.data!.docs;
                     if (docs.isEmpty) {
                       return const Center(
-                        child: Text("No hay reseñas aún",
-                            style: TextStyle(color: Colors.white70)),
+                        child: Text(
+                          "No hay reseñas aún",
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       );
                     }
 
@@ -100,6 +105,8 @@ class ResenasAdmin extends StatelessWidget {
   }
 
   Widget _item(Map<String, dynamic> r) {
+    final puntuacion = (r["puntuacion"] ?? 0).toDouble();
+
     return Card(
       color: Colors.grey[900],
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -117,9 +124,7 @@ class ResenasAdmin extends StatelessWidget {
               children: List.generate(
                 5,
                     (i) => Icon(
-                  i < (r["calificacion"] ?? 0)
-                      ? Icons.star
-                      : Icons.star_border,
+                  i < puntuacion ? Icons.star : Icons.star_border,
                   color: Colors.amber,
                   size: 20,
                 ),
@@ -133,8 +138,7 @@ class ResenasAdmin extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               r["fecha"] != null ? _format(r["fecha"]) : "",
-              style:
-              const TextStyle(color: Colors.white38, fontSize: 12),
+              style: const TextStyle(color: Colors.white38, fontSize: 12),
             ),
           ],
         ),

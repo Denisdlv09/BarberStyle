@@ -28,7 +28,7 @@ class _BarberiaDetalleBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<BarberiaViewModel>();
 
-    if (vm.isLoading) {
+    if (vm.isLoading && vm.barberiaData == null) {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
