@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/user_viewmodel.dart';
+import '../../core/utils/validators.dart';
 import '../auth/login_window.dart';
 
 class PerfilUsuario extends StatefulWidget {
@@ -78,7 +79,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
               children: [
                 const SizedBox(height: 20),
 
-                // Avatar
+                /// Avatar
                 CircleAvatar(
                   radius: 45,
                   backgroundColor: Colors.redAccent,
@@ -91,35 +92,35 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                 ),
                 const SizedBox(height: 20),
 
-                // Email (solo lectura)
+                /// Email (solo lectura)
                 Text(
                   user['email'] ?? '',
                   style: const TextStyle(color: Colors.white70, fontSize: 16),
                 ),
                 const SizedBox(height: 30),
 
-                // Campo nombre
+                /// Campo nombre — valida usando Validators.validateName
                 TextFormField(
                   controller: _nombreController,
                   enabled: _editando,
                   style: const TextStyle(color: Colors.white),
-                  validator: (v) => v == null || v.isEmpty ? "Ingresa tu nombre" : null,
-                  decoration: _input("Nombre"),
+                  validator: Validators.validateName,
+                  decoration: _input("Nombre completo"),
                 ),
                 const SizedBox(height: 20),
 
-                // Campo teléfono
+                /// Campo teléfono — valida usando Validators.validatePhone
                 TextFormField(
                   controller: _telefonoController,
                   enabled: _editando,
                   style: const TextStyle(color: Colors.white),
                   keyboardType: TextInputType.phone,
-                  validator: (v) => v == null || v.isEmpty ? "Ingresa tu teléfono" : null,
+                  validator: Validators.validatePhone,
                   decoration: _input("Teléfono"),
                 ),
                 const SizedBox(height: 30),
 
-                // Botón Guardar o Editar
+                /// Botón Guardar / Editar
                 _editando
                     ? ElevatedButton.icon(
                   style: _boton(),
@@ -138,7 +139,8 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                            content: Text("Perfil actualizado correctamente")),
+                            content:
+                            Text("Perfil actualizado correctamente")),
                       );
                     }
                   },
@@ -154,7 +156,7 @@ class _PerfilUsuarioState extends State<PerfilUsuario> {
                 const Divider(color: Colors.white24),
                 const SizedBox(height: 15),
 
-                // 🔥 Eliminar cuenta
+                /// Eliminar cuenta
                 ElevatedButton.icon(
                   icon: const Icon(Icons.delete_forever),
                   label: const Text("Eliminar cuenta"),
