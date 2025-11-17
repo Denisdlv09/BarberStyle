@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../data/models/resena_model.dart';
 import '../../data/services/resenas_service.dart';
@@ -7,15 +8,21 @@ import '../../data/services/resenas_service.dart';
 class ResenasViewModel extends ChangeNotifier {
   final ReviewService _service = ReviewService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   bool isLoading = false;
   String? errorMessage;
 
-  ReviewModel? reviewActual;  // reseña del usuario si existe
+  ReviewModel? reviewActual;
 
-  // -----------------------------------------------------------
-  // Cargar reseña existente del usuario
-  // -----------------------------------------------------------
+  /// 🔥 Stream de TODAS las reseñas del usuario
+  Stream<List<ReviewModel>> getResenasDelUsuario() {
+    final user = _auth.currentUser;
+    if (user == null) return const Stream.empty();
+    return _service.obtenerResenasDelUsuario(user.uid);
+  }
+
+  /// 🔹 Cargar reseña existente de este usuario en esta barbería
   Future<void> cargarResena(String barberiaId) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -33,11 +40,10 @@ class ResenasViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -----------------------------------------------------------
-  // Crear o actualizar reseña
-  // -----------------------------------------------------------
+  /// 🔹 Guardar o actualizar reseña
   Future<void> guardarResena({
     required String barberiaId,
+    required String barberiaNombre,
     required double puntuacion,
     required String comentario,
   }) async {
@@ -49,10 +55,19 @@ class ResenasViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Obtener nombre real del usuario
+      final userDoc =
+      await _db.collection("usuarios").doc(user.uid).get();
+
+      final nombreReal = userDoc.data()?["nombre"] ?? "Cliente";
+
       final nuevaResena = ReviewModel(
-        id: reviewActual?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id: reviewActual?.id ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         userId: user.uid,
         barberiaId: barberiaId,
+        barberiaNombre: barberiaNombre,
+        nombreCliente: nombreReal,
         puntuacion: puntuacion,
         comentario: comentario,
         fecha: DateTime.now(),
@@ -70,9 +85,7 @@ class ResenasViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -----------------------------------------------------------
-  // Eliminar reseña
-  // -----------------------------------------------------------
+  /// 🔹 Eliminar reseña
   Future<void> eliminarResena(String barberiaId) async {
     if (reviewActual == null) return;
 

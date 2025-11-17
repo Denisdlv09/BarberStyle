@@ -5,6 +5,8 @@ class ReviewModel {
   final String id;
   final String userId;
   final String barberiaId;
+  final String barberiaNombre;
+  final String nombreCliente;
   final double puntuacion;
   final String comentario;
   final DateTime fecha;
@@ -13,6 +15,8 @@ class ReviewModel {
     required this.id,
     required this.userId,
     required this.barberiaId,
+    required this.barberiaNombre,
+    required this.nombreCliente,
     required this.puntuacion,
     required this.comentario,
     required this.fecha,
@@ -23,6 +27,8 @@ class ReviewModel {
       id: id,
       userId: map['userId'] ?? '',
       barberiaId: map['barberiaId'] ?? '',
+      barberiaNombre: map['barberiaNombre'] ?? '',
+      nombreCliente: map['nombreCliente'] ?? 'Cliente',
       puntuacion: (map['puntuacion'] ?? 0).toDouble(),
       comentario: map['comentario'] ?? '',
       fecha: _parseDate(map['fecha']),
@@ -33,14 +39,15 @@ class ReviewModel {
     return {
       'userId': userId,
       'barberiaId': barberiaId,
+      'barberiaNombre': barberiaNombre,
+      'nombreCliente': nombreCliente,
       'puntuacion': puntuacion,
       'comentario': comentario,
-      // Firestore guarda fechas como Timestamps, no strings.
       'fecha': Timestamp.fromDate(fecha),
     };
   }
 
-  /// 🔹 Permite recibir Timestamp, String o DateTime sin explotar.
+  /// 🔹 Maneja Timestamp, String y DateTime
   static DateTime _parseDate(dynamic value) {
     if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();

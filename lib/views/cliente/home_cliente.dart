@@ -21,7 +21,6 @@ class _HomeClienteState extends State<HomeCliente> {
   void initState() {
     super.initState();
 
-    // Cargar datos del usuario en cuanto se monta la vista
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserViewModel>().loadUserData();
     });
@@ -38,8 +37,7 @@ class _HomeClienteState extends State<HomeCliente> {
         backgroundColor: Colors.black,
         appBar: AppBar(
           backgroundColor: Colors.redAccent,
-          title:
-          const Text('Barberías 💈', style: TextStyle(color: Colors.white)),
+          title: const Text('Barberías 💈', style: TextStyle(color: Colors.white)),
           bottom: const TabBar(
             indicatorColor: Colors.white,
             tabs: [
@@ -49,7 +47,6 @@ class _HomeClienteState extends State<HomeCliente> {
           ),
         ),
 
-        // Drawer
         drawer: Drawer(
           backgroundColor: Colors.grey[900],
           child: ListView(
@@ -71,31 +68,23 @@ class _HomeClienteState extends State<HomeCliente> {
                 ),
               ),
 
-              // PERFIL / CONFIGURACIÓN
               ListTile(
                 leading: const Icon(Icons.person, color: Colors.white70),
-                title: const Text("Mi perfil",
-                    style: TextStyle(color: Colors.white)),
+                title: const Text("Mi perfil", style: TextStyle(color: Colors.white)),
                 onTap: () async {
                   Navigator.pop(context);
-
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const PerfilUsuario()),
+                    MaterialPageRoute(builder: (_) => const PerfilUsuario()),
                   );
-
-                  // Recargar datos al volver
                   userVM.loadUserData();
                 },
               ),
 
               const Divider(color: Colors.white24),
 
-              // LOGOUT
               ListTile(
-                leading:
-                const Icon(Icons.logout, color: Colors.redAccent),
+                leading: const Icon(Icons.logout, color: Colors.redAccent),
                 title: const Text("Cerrar sesión",
                     style: TextStyle(color: Colors.redAccent)),
                 onTap: () async {
@@ -103,8 +92,7 @@ class _HomeClienteState extends State<HomeCliente> {
                   if (context.mounted) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const LoginWindow()),
+                      MaterialPageRoute(builder: (_) => const LoginWindow()),
                     );
                   }
                 },
@@ -113,7 +101,6 @@ class _HomeClienteState extends State<HomeCliente> {
           ),
         ),
 
-        // Contenido de Tabs
         body: TabBarView(
           children: [
             _buildListaBarberias(),
@@ -124,7 +111,7 @@ class _HomeClienteState extends State<HomeCliente> {
     );
   }
 
-  /// 🏪 Listado de barberías
+  /// 🏪 Lista de Barberías
   Widget _buildListaBarberias() {
     return Consumer<UserViewModel>(
       builder: (context, userVM, _) {
@@ -133,7 +120,8 @@ class _HomeClienteState extends State<HomeCliente> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                  child: CircularProgressIndicator(color: Colors.redAccent));
+                child: CircularProgressIndicator(color: Colors.redAccent),
+              );
             }
 
             final barberias = snapshot.data ?? [];
@@ -141,7 +129,7 @@ class _HomeClienteState extends State<HomeCliente> {
               return const Center(
                 child: Text(
                   "No hay barberías disponibles aún.",
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                  style: TextStyle(color: Colors.white70),
                 ),
               );
             }
@@ -155,7 +143,8 @@ class _HomeClienteState extends State<HomeCliente> {
                 return Card(
                   color: Colors.grey[900],
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   margin: const EdgeInsets.only(bottom: 16),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
@@ -175,15 +164,16 @@ class _HomeClienteState extends State<HomeCliente> {
                     title: Text(
                       data['nombre'] ?? 'Barbería sin nombre',
                       style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     subtitle: Text(
                       data['direccion'] ?? 'Dirección no disponible',
-                      style:
-                      const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(color: Colors.white70),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios,
-                        color: Colors.white70),
+                    trailing:
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white70),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -203,14 +193,16 @@ class _HomeClienteState extends State<HomeCliente> {
     );
   }
 
-  /// 📅 Mis citas
+  /// 📅 Mis citas (CON nombre de barbería añadido)
   Widget _buildMisCitas(CitasViewModel citasVM) {
     final userId = context.read<UserViewModel>().currentUserId;
 
     if (userId == null) {
       return const Center(
-        child: Text("Inicia sesión para ver tus citas.",
-            style: TextStyle(color: Colors.white70)),
+        child: Text(
+          "Inicia sesión para ver tus citas.",
+          style: TextStyle(color: Colors.white70),
+        ),
       );
     }
 
@@ -219,14 +211,17 @@ class _HomeClienteState extends State<HomeCliente> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
-              child: CircularProgressIndicator(color: Colors.redAccent));
+            child: CircularProgressIndicator(color: Colors.redAccent),
+          );
         }
 
         final citas = snapshot.data!;
         if (citas.isEmpty) {
           return const Center(
-            child: Text("No tienes citas programadas.",
-                style: TextStyle(color: Colors.white70)),
+            child: Text(
+              "No tienes citas programadas.",
+              style: TextStyle(color: Colors.white70),
+            ),
           );
         }
 
@@ -243,17 +238,40 @@ class _HomeClienteState extends State<HomeCliente> {
             return Card(
               color: Colors.grey[900],
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
               margin: const EdgeInsets.only(bottom: 16),
               child: ListTile(
                 title: Text(
                   cita.servicio,
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                subtitle: Text("📅 $fechaFormateada",
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 14)),
+
+                // ⭐️ AQUI AÑADIMOS EL NOMBRE DE LA BARBERÍA ⭐️
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "💈 Barbería: ${cita.barberiaNombre}",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "📅 $fechaFormateada",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+
                 trailing: IconButton(
                   icon: const Icon(Icons.cancel, color: Colors.redAccent),
                   onPressed: () async {
@@ -271,14 +289,18 @@ class _HomeClienteState extends State<HomeCliente> {
                           TextButton(
                             onPressed: () =>
                                 Navigator.pop(context, false),
-                            child: const Text("No",
-                                style: TextStyle(color: Colors.white70)),
+                            child: const Text(
+                              "No",
+                              style: TextStyle(color: Colors.white70),
+                            ),
                           ),
                           TextButton(
                             onPressed: () =>
                                 Navigator.pop(context, true),
-                            child: const Text("Sí, cancelar",
-                                style: TextStyle(color: Colors.redAccent)),
+                            child: const Text(
+                              "Sí, cancelar",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
                           ),
                         ],
                       ),
@@ -286,10 +308,13 @@ class _HomeClienteState extends State<HomeCliente> {
 
                     if (confirm == true) {
                       await citasVM.cancelarCita(cita);
+
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text("Cita cancelada correctamente")),
+                            content:
+                            Text("Cita cancelada correctamente"),
+                          ),
                         );
                       }
                     }

@@ -116,14 +116,17 @@ class _ResenarBarberiaState extends State<ResenarBarberia> {
                       : () async {
                     await vm.guardarResena(
                       barberiaId: widget.barberiaId,
+                      barberiaNombre: widget.barberiaNombre,
                       puntuacion: _rating,
                       comentario: _comentarioCtrl.text.trim(),
                     );
 
-                    if (context.mounted && vm.errorMessage == null) {
+                    if (context.mounted &&
+                        vm.errorMessage == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Reseña guardada correctamente 🎉"),
+                          content: Text(
+                              "Reseña guardada correctamente 🎉"),
                         ),
                       );
                       Navigator.pop(context);
@@ -170,7 +173,8 @@ class _ResenarBarberiaState extends State<ResenarBarberia> {
                         Navigator.pop(context);
                       }
                     },
-                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                    icon: const Icon(Icons.delete,
+                        color: Colors.redAccent),
                     label: const Text(
                       "Eliminar reseña",
                       style: TextStyle(color: Colors.redAccent),
