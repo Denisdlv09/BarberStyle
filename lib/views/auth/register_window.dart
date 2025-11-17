@@ -22,7 +22,9 @@ class _RegisterWindowState extends State<RegisterWindow> {
 
   final _nombreCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  final _telefonoCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+
   String _rol = "cliente";
 
   Future<void> _registrar(BuildContext context) async {
@@ -33,7 +35,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
     final user = await authVM.register(
       nombre: _nombreCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
-      telefono: "",
+      telefono: _telefonoCtrl.text.trim(), // Ahora se envía correctamente
       password: _passwordCtrl.text.trim(),
       rol: _rol,
     );
@@ -74,6 +76,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
                   Text("Crear Cuenta", style: AppTextStyles.title),
                   const SizedBox(height: 40),
 
+                  // Nombre
                   CustomTextField(
                     label: "Nombre completo",
                     controller: _nombreCtrl,
@@ -81,6 +84,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
                   ),
                   const SizedBox(height: 15),
 
+                  // Email
                   CustomTextField(
                     label: "Correo electrónico",
                     controller: _emailCtrl,
@@ -89,6 +93,16 @@ class _RegisterWindowState extends State<RegisterWindow> {
                   ),
                   const SizedBox(height: 15),
 
+                  // Teléfono (nuevo)
+                  CustomTextField(
+                    label: "Teléfono",
+                    controller: _telefonoCtrl,
+                    keyboardType: TextInputType.phone,
+                    validator: Validators.validatePhone,
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Contraseña
                   CustomTextField(
                     label: "Contraseña",
                     controller: _passwordCtrl,
@@ -97,6 +111,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
                   ),
                   const SizedBox(height: 25),
 
+                  // Tipo de usuario
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -108,6 +123,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
 
                   const SizedBox(height: 30),
 
+                  // Botón de registro
                   authVM.isLoading
                       ? const CircularProgressIndicator(color: AppColors.primary)
                       : CustomButton(
@@ -117,12 +133,12 @@ class _RegisterWindowState extends State<RegisterWindow> {
 
                   const SizedBox(height: 20),
 
+                  // Ir a login
                   TextButton(
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const LoginWindow()),
+                        MaterialPageRoute(builder: (_) => const LoginWindow()),
                       );
                     },
                     child: const Text("¿Ya tienes cuenta? Inicia sesión"),

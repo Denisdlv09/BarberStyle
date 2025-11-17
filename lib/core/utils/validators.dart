@@ -31,11 +31,27 @@ class Validators {
     return null;
   }
 
-  /// 🔹 Teléfono (opcional)
+  /// 🔹 Teléfono (obligatorio en el registro)
+  ///
+  /// Acepta:
+  ///   - 9 dígitos (España)
+  ///   - +34 600 123 456
+  ///   - 600-123-456
+  ///   - (600) 123 456
+  ///
   static String? validatePhone(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
-    final phoneRegex = RegExp(r'^[0-9]{9}$');
-    return phoneRegex.hasMatch(value) ? null : 'Debe tener 9 dígitos';
+    if (value == null || value.trim().isEmpty) {
+      return "Ingresa un número de teléfono";
+    }
+
+    // Acepta dígitos, espacios, +, -, paréntesis
+    final phoneRegex = RegExp(r'^[0-9 +()\-]{7,15}$');
+
+    if (!phoneRegex.hasMatch(value.trim())) {
+      return "Teléfono no válido";
+    }
+
+    return null;
   }
 
   /// 🔹 Precio numérico válido
