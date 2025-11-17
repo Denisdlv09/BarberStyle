@@ -18,7 +18,8 @@ class _CitasAdminState extends State<CitasAdmin> {
   String filtroEstado = "todas";
   DateTime? filtroFecha;
 
-  String _format(DateTime f) => DateFormat('dd/MM/yyyy HH:mm').format(f);
+  String _format(DateTime f) =>
+      DateFormat('dd/MM/yyyy HH:mm').format(f);
 
   Future<void> _pickDate() async {
     final today = DateTime.now();
@@ -47,7 +48,7 @@ class _CitasAdminState extends State<CitasAdmin> {
 
   void _chooseEstado() {
     showModalBottomSheet(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.black,
       context: context,
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -55,7 +56,6 @@ class _CitasAdminState extends State<CitasAdmin> {
           _estado("Mostrar todas", "todas"),
           _estado("Pendientes", "pendiente"),
           _estado("Completadas", "completada"),
-          _estado("Canceladas", "cancelada"),
         ],
       ),
     );
@@ -67,8 +67,7 @@ class _CitasAdminState extends State<CitasAdmin> {
         txt,
         style: TextStyle(
           color: filtroEstado == val ? Colors.redAccent : Colors.white70,
-          fontWeight:
-          filtroEstado == val ? FontWeight.bold : FontWeight.normal,
+          fontWeight: filtroEstado == val ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       onTap: () {
@@ -83,18 +82,15 @@ class _CitasAdminState extends State<CitasAdmin> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text("Eliminar cita",
-            style: TextStyle(color: Colors.white)),
-        content: const Text("¿Seguro?",
-            style: TextStyle(color: Colors.white70)),
+        title: const Text("Eliminar cita", style: TextStyle(color: Colors.white)),
+        content: const Text("¿Seguro?", style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text("Cancelar", style: TextStyle(color: Colors.red)),
           ),
           ElevatedButton(
-            style:
-            ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Eliminar"),
           ),
@@ -133,8 +129,8 @@ class _CitasAdminState extends State<CitasAdmin> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title:
-        const Text("Citas Agendadas", style: TextStyle(color: Colors.white)),
+        title: const Text("Citas Agendadas",
+            style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
         actions: [
           IconButton(
@@ -163,15 +159,17 @@ class _CitasAdminState extends State<CitasAdmin> {
           List<CitaModel> citas = snap.data!;
 
           if (filtroEstado != "todas") {
-            citas = citas
-                .where((c) => (c.estado ?? "pendiente") == filtroEstado)
-                .toList();
+            citas = citas.where((c) => c.estado == filtroEstado).toList();
           }
 
           if (filtroFecha != null) {
-            final ini = DateTime(filtroFecha!.year, filtroFecha!.month, filtroFecha!.day);
+            final ini = DateTime(
+                filtroFecha!.year, filtroFecha!.month, filtroFecha!.day);
             final fin = ini.add(const Duration(days: 1));
-            citas = citas.where((c) => c.fecha.isAfter(ini) && c.fecha.isBefore(fin)).toList();
+            citas = citas
+                .where((c) =>
+            c.fecha.isAfter(ini) && c.fecha.isBefore(fin))
+                .toList();
           }
 
           if (citas.isEmpty) {
@@ -188,11 +186,13 @@ class _CitasAdminState extends State<CitasAdmin> {
 
               return Card(
                 color: Colors.grey[900],
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
-                  leading: const Icon(Icons.schedule, color: Colors.redAccent),
+                  leading:
+                  const Icon(Icons.schedule, color: Colors.redAccent),
                   title: Text(
                     c.clienteNombre.isEmpty
                         ? "Cliente"
@@ -211,29 +211,42 @@ class _CitasAdminState extends State<CitasAdmin> {
                     ],
                   ),
                   trailing: PopupMenuButton<String>(
-                    color: Colors.grey[850],
                     icon: const Icon(Icons.more_vert, color: Colors.white),
+                    color: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     onSelected: (op) {
                       if (op == "completar") {
                         _cambiarEstado(c, "completada");
-                      } else if (op == "cancelar") {
-                        _cambiarEstado(c, "cancelada");
                       } else if (op == "eliminar") {
                         _eliminar(c);
                       }
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: "completar",
-                        child: Text("Marcar como completada"),
-                      ),
-                      PopupMenuItem(
-                        value: "cancelar",
-                        child: Text("Marcar como cancelada"),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.check_circle,
+                                color: Colors.greenAccent),
+                            SizedBox(width: 10),
+                            Text("Marcar como completada",
+                                style: TextStyle(color: Colors.white)),
+                          ],
+                        ),
                       ),
                       PopupMenuItem(
                         value: "eliminar",
-                        child: Text("Eliminar cita"),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.delete,
+                                color: Colors.redAccent),
+                            SizedBox(width: 10),
+                            Text("Eliminar cita",
+                                style: TextStyle(color: Colors.white)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
