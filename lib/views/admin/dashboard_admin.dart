@@ -9,6 +9,7 @@ import 'editar_barberia.dart';
 import 'gestionar_servicios.dart';
 import 'citas_admin.dart';
 import 'resenas_admin.dart';
+import 'barberos_admin.dart'; // 👈 NUEVO IMPORT
 
 class DashboardAdmin extends StatefulWidget {
   const DashboardAdmin({super.key});
@@ -137,6 +138,19 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               context,
               MaterialPageRoute(
                 builder: (_) => GestionarServicios(barberiaId: id),
+              ),
+            );
+          }),
+
+          // -----------------------------------------
+          // ⭐ NUEVO: BOTÓN GESTIONAR BARBEROS ⭐
+          // -----------------------------------------
+          const SizedBox(height: 15),
+          _buildButton(Icons.person, "Gestionar barberos", () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BarberosAdmin(barberiaId: id),
               ),
             );
           }),

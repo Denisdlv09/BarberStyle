@@ -18,8 +18,7 @@ class _CitasAdminState extends State<CitasAdmin> {
   String filtroEstado = "todas";
   DateTime? filtroFecha;
 
-  String _format(DateTime f) =>
-      DateFormat('dd/MM/yyyy HH:mm').format(f);
+  String _format(DateTime f) => DateFormat('dd/MM/yyyy HH:mm').format(f);
 
   Future<void> _pickDate() async {
     final today = DateTime.now();
@@ -29,9 +28,8 @@ class _CitasAdminState extends State<CitasAdmin> {
       firstDate: DateTime(today.year - 1),
       lastDate: DateTime(today.year + 1),
       builder: (_, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(primary: Colors.redAccent),
-        ),
+        data: ThemeData.dark()
+            .copyWith(colorScheme: const ColorScheme.dark(primary: Colors.redAccent)),
         child: child!,
       ),
     );
@@ -103,6 +101,7 @@ class _CitasAdminState extends State<CitasAdmin> {
         barberiaId: widget.barberiaId,
         citaId: c.id,
         clienteId: c.clienteId,
+        barberoId: c.barberoId,
       );
     }
   }
@@ -113,6 +112,7 @@ class _CitasAdminState extends State<CitasAdmin> {
       citaId: c.id,
       clienteId: c.clienteId,
       nuevoEstado: est,
+      barberoId: c.barberoId,
     );
 
     if (mounted) {
@@ -129,8 +129,7 @@ class _CitasAdminState extends State<CitasAdmin> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("Citas Agendadas",
-            style: TextStyle(color: Colors.white)),
+        title: const Text("Citas Agendadas", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
         actions: [
           IconButton(
@@ -163,19 +162,14 @@ class _CitasAdminState extends State<CitasAdmin> {
           }
 
           if (filtroFecha != null) {
-            final ini = DateTime(
-                filtroFecha!.year, filtroFecha!.month, filtroFecha!.day);
+            final ini = DateTime(filtroFecha!.year, filtroFecha!.month, filtroFecha!.day);
             final fin = ini.add(const Duration(days: 1));
-            citas = citas
-                .where((c) =>
-            c.fecha.isAfter(ini) && c.fecha.isBefore(fin))
-                .toList();
+            citas = citas.where((c) => c.fecha.isAfter(ini) && c.fecha.isBefore(fin)).toList();
           }
 
           if (citas.isEmpty) {
             return const Center(
-              child: Text("No hay citas según los filtros.",
-                  style: TextStyle(color: Colors.white70)),
+              child: Text("No hay citas según los filtros.", style: TextStyle(color: Colors.white70)),
             );
           }
 
@@ -186,65 +180,53 @@ class _CitasAdminState extends State<CitasAdmin> {
 
               return Card(
                 color: Colors.grey[900],
-                margin:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
-                  leading:
-                  const Icon(Icons.schedule, color: Colors.redAccent),
+                  leading: const Icon(Icons.schedule, color: Colors.redAccent),
+
                   title: Text(
-                    c.clienteNombre.isEmpty
-                        ? "Cliente"
-                        : c.clienteNombre,
+                    c.clienteNombre,
                     style: const TextStyle(color: Colors.white),
                   ),
+
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Servicio: ${c.servicio}",
-                          style: const TextStyle(color: Colors.white70)),
-                      Text("Fecha: ${_format(c.fecha)}",
-                          style: const TextStyle(color: Colors.white70)),
-                      Text("Estado: ${c.estado}",
-                          style: const TextStyle(color: Colors.white70)),
+                      Text("Servicio: ${c.servicio}", style: const TextStyle(color: Colors.white70)),
+                      Text("Fecha: ${_format(c.fecha)}", style: const TextStyle(color: Colors.white70)),
+                      Text("Estado: ${c.estado}", style: const TextStyle(color: Colors.white70)),
+                      if (c.barberoNombre.isNotEmpty)
+                        Text("Barbero: ${c.barberoNombre}", style: const TextStyle(color: Colors.white70)),
                     ],
                   ),
+
                   trailing: PopupMenuButton<String>(
                     icon: const Icon(Icons.more_vert, color: Colors.white),
                     color: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     onSelected: (op) {
-                      if (op == "completar") {
-                        _cambiarEstado(c, "completada");
-                      } else if (op == "eliminar") {
-                        _eliminar(c);
-                      }
+                      if (op == "completar") _cambiarEstado(c, "completada");
+                      if (op == "eliminar") _eliminar(c);
                     },
                     itemBuilder: (_) => [
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: "completar",
                         child: Row(
-                          children: const [
-                            Icon(Icons.check_circle,
-                                color: Colors.greenAccent),
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.greenAccent),
                             SizedBox(width: 10),
-                            Text("Marcar como completada",
-                                style: TextStyle(color: Colors.white)),
+                            Text("Marcar como completada", style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
-                      PopupMenuItem(
+                      const PopupMenuItem(
                         value: "eliminar",
                         child: Row(
-                          children: const [
-                            Icon(Icons.delete,
-                                color: Colors.redAccent),
+                          children: [
+                            Icon(Icons.delete, color: Colors.redAccent),
                             SizedBox(width: 10),
-                            Text("Eliminar cita",
-                                style: TextStyle(color: Colors.white)),
+                            Text("Eliminar cita", style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),

@@ -4,24 +4,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 import '../../viewmodels/reservar_cita_viewmodel.dart';
-import '..//widgets/servicio_dropdown.dart';
-import '..//widgets/horas_disponibles.dart';
+import '../widgets/servicio_dropdown.dart';
+import '../widgets/horas_disponibles.dart';
 
 class ReservarCita extends StatelessWidget {
   final String barberiaId;
   final String barberiaNombre;
+  final String barberoId;                // ← AÑADIDO
+  final String barberoNombre;            // ← AÑADIDO
 
   const ReservarCita({
     super.key,
     required this.barberiaId,
     required this.barberiaNombre,
+    required this.barberoId,             // ←
+    required this.barberoNombre,         // ←
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ReservarCitaViewModel(),
-      child: _ReservarCitaView(barberiaId: barberiaId, barberiaNombre: barberiaNombre),
+      create: (_) => ReservarCitaViewModel()
+        ..seleccionarBarbero(barberoId, barberoNombre),   // ← INICIALIZA BARBERO
+      child: _ReservarCitaView(
+        barberiaId: barberiaId,
+        barberiaNombre: barberiaNombre,
+      ),
     );
   }
 }
@@ -44,15 +52,37 @@ class _ReservarCitaView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.redAccent,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text("Reservar en $barberiaNombre", style: const TextStyle(color: Colors.white)),
+        title: Text("Reservar en $barberiaNombre",
+            style: const TextStyle(color: Colors.white)),
       ),
 
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // ------------------ BARBERO SELECCIONADO ------------------
+            Text("Barbero seleccionado:",
+                style: const TextStyle(color: Colors.white, fontSize: 16)),
+            const SizedBox(height: 8),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                vm.barberoSeleccionadoNombre ?? "",
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
             // ------------------ SERVICIOS ------------------
-            const Text("Servicio:", style: TextStyle(color: Colors.white, fontSize: 16)),
+            const Text("Servicio:",
+                style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
 
             StreamBuilder<QuerySnapshot>(
@@ -64,10 +94,14 @@ class _ReservarCitaView extends StatelessWidget {
                   .snapshots(),
               builder: (_, snap) {
                 if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator(color: Colors.redAccent));
+                  return const Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.redAccent));
                 }
 
-                final servicios = snap.data!.docs.map((d) => d.data() as Map<String, dynamic>).toList();
+                final servicios = snap.data!.docs
+                    .map((d) => d.data() as Map<String, dynamic>)
+                    .toList();
 
                 return ServicioDropdown(
                   servicios: servicios,
@@ -80,16 +114,19 @@ class _ReservarCitaView extends StatelessWidget {
             const SizedBox(height: 20),
 
             // ------------------ FECHA ------------------
-            const Text("Fecha:", style: TextStyle(color: Colors.white, fontSize: 16)),
+            const Text("Fecha:",
+                style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
 
             ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent),
               icon: const Icon(Icons.calendar_today),
               label: Text(
                 vm.fechaSeleccionada == null
                     ? "Elegir fecha"
-                    : DateFormat('dd/MM/yyyy').format(vm.fechaSeleccionada!),
+                    : DateFormat('dd/MM/yyyy')
+                    .format(vm.fechaSeleccionada!),
                 style: const TextStyle(color: Colors.white),
               ),
               onPressed: () async {
@@ -102,8 +139,8 @@ class _ReservarCitaView extends StatelessWidget {
                   builder: (_, child) {
                     return Theme(
                       data: ThemeData.dark().copyWith(
-                        colorScheme: const ColorScheme.dark(primary: Colors.redAccent),
-                      ),
+                          colorScheme: const ColorScheme.dark(
+                              primary: Colors.redAccent)),
                       child: child!,
                     );
                   },
@@ -118,17 +155,24 @@ class _ReservarCitaView extends StatelessWidget {
             const SizedBox(height: 20),
 
             // ------------------ HORAS ------------------
-            const Text("Hora:", style: TextStyle(color: Colors.white, fontSize: 16)),
+            const Text("Hora:",
+                style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
 
             if (vm.fechaSeleccionada == null)
-              const Text("Selecciona una fecha.", style: TextStyle(color: Colors.white54)),
+              const Text("Selecciona una fecha.",
+                  style: TextStyle(color: Colors.white54)),
 
             if (vm.cargandoHoras)
-              const Center(child: CircularProgressIndicator(color: Colors.redAccent)),
+              const Center(
+                  child:
+                  CircularProgressIndicator(color: Colors.redAccent)),
 
-            if (!vm.cargandoHoras && vm.fechaSeleccionada != null && vm.horasDisponibles.isEmpty)
-              const Text("No hay horas disponibles.", style: TextStyle(color: Colors.redAccent)),
+            if (!vm.cargandoHoras &&
+                vm.horasDisponibles.isEmpty &&
+                vm.fechaSeleccionada != null)
+              const Text("No hay horas disponibles.",
+                  style: TextStyle(color: Colors.redAccent)),
 
             if (!vm.cargandoHoras && vm.horasDisponibles.isNotEmpty)
               HorasDisponibles(
@@ -141,16 +185,20 @@ class _ReservarCitaView extends StatelessWidget {
 
             Center(
               child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.all(14)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.all(14)),
                 icon: vm.guardando
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.check, color: Colors.white),
-
                 label: Text(
                   vm.guardando ? "Guardando..." : "Confirmar cita",
                   style: const TextStyle(color: Colors.white),
                 ),
-
                 onPressed: vm.guardando
                     ? null
                     : () async {
@@ -160,9 +208,14 @@ class _ReservarCitaView extends StatelessWidget {
                   );
 
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error)));
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cita reservada correctamente 🎉")));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text(
+                              "Cita reservada correctamente 🎉")),
+                    );
                     Navigator.pop(context);
                   }
                 },

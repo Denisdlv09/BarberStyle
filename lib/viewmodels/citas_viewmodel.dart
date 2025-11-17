@@ -9,7 +9,7 @@ class CitasViewModel extends ChangeNotifier {
   String? error;
 
   // -------------------------------------------------------
-  // Streams de citas
+  // STREAMS
   // -------------------------------------------------------
 
   Stream<List<CitaModel>> getCitasPorUsuario(String userId) {
@@ -21,7 +21,7 @@ class CitasViewModel extends ChangeNotifier {
   }
 
   // -------------------------------------------------------
-  // Crear cita
+  // CREAR CITA
   // -------------------------------------------------------
 
   Future<void> crearCita(Map<String, dynamic> data) async {
@@ -29,9 +29,9 @@ class CitasViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      final cita = CitaModel.fromMap(data, null); // id lo genera el service
-
+      final cita = CitaModel.fromMap(data, null);
       await _citaService.crearCita(cita);
+
     } catch (e) {
       error = "Error creando cita: $e";
     } finally {
@@ -41,36 +41,63 @@ class CitasViewModel extends ChangeNotifier {
   }
 
   // -------------------------------------------------------
-  // Acciones sobre citas
+  // ACCIONES SOBRE CITAS
   // -------------------------------------------------------
 
+  /// Cliente cancela su cita (equivalente a eliminarla)
   Future<void> cancelarCita(CitaModel cita) async {
-    await _citaService.cancelarCita(cita);
+    try {
+      await _citaService.eliminarCita(
+        barberiaId: cita.barberiaId,
+        citaId: cita.id,
+        clienteId: cita.clienteId,
+        barberoId: cita.barberoId.isNotEmpty ? cita.barberoId : null,
+      );
+    } catch (e) {
+      error = "Error cancelando cita: $e";
+      notifyListeners();
+    }
   }
 
+  /// ADMIN elimina cita (barberoId opcional)
   Future<void> eliminarCita({
     required String barberiaId,
     required String citaId,
     required String clienteId,
+    required String? barberoId,
   }) async {
-    await _citaService.eliminarCita(
-      barberiaId: barberiaId,
-      citaId: citaId,
-      clienteId: clienteId,
-    );
+    try {
+      await _citaService.eliminarCita(
+        barberiaId: barberiaId,
+        citaId: citaId,
+        clienteId: clienteId,
+        barberoId: barberoId,
+      );
+    } catch (e) {
+      error = "Error eliminando cita: $e";
+      notifyListeners();
+    }
   }
 
+  /// ADMIN marca cita como completada
   Future<void> actualizarEstado({
     required String barberiaId,
     required String citaId,
     required String clienteId,
     required String nuevoEstado,
+    required String? barberoId,
   }) async {
-    await _citaService.actualizarEstado(
-      barberiaId: barberiaId,
-      citaId: citaId,
-      clienteId: clienteId,
-      nuevoEstado: nuevoEstado,
-    );
+    try {
+      await _citaService.actualizarEstado(
+        barberiaId: barberiaId,
+        citaId: citaId,
+        clienteId: clienteId,
+        nuevoEstado: nuevoEstado,
+        barberoId: barberoId,
+      );
+    } catch (e) {
+      error = "Error actualizando estado: $e";
+      notifyListeners();
+    }
   }
 }

@@ -7,10 +7,11 @@ class ReservarCitaViewModel extends ChangeNotifier {
   final _db = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  // ----------------------------
-  // Estado
-  // ----------------------------
   String? servicioSeleccionado;
+
+  String? barberoSeleccionadoId;
+  String? barberoSeleccionadoNombre;
+
   DateTime? fechaSeleccionada;
   String? horaSeleccionada;
 
@@ -20,7 +21,6 @@ class ReservarCitaViewModel extends ChangeNotifier {
   List<String> horasOcupadas = [];
   List<String> horasDisponibles = [];
 
-  /// Horario fijo
   final List<String> horasTotales = const [
     "10:00", "10:30", "11:00", "11:30",
     "12:00", "12:30", "13:00", "13:30",
@@ -30,69 +30,88 @@ class ReservarCitaViewModel extends ChangeNotifier {
   ];
 
   // ----------------------------
-  // Seleccion de servicio
+  // Selección barbero
   // ----------------------------
+  void seleccionarBarbero(String id, String nombre) {
+    barberoSeleccionadoId = id;
+    barberoSeleccionadoNombre = nombre;
+
+    fechaSeleccionada = null;
+    horaSeleccionada = null;
+
+    notifyListeners();
+  }
+
   void seleccionarServicio(String? servicio) {
     servicioSeleccionado = servicio;
     notifyListeners();
   }
 
   // ----------------------------
-  // Seleccion de fecha
+  // Selección de fecha
   // ----------------------------
   Future<void> seleccionarFecha(DateTime fecha, String barberiaId) async {
     fechaSeleccionada = fecha;
     horaSeleccionada = null;
-    await cargarHorasOcupadas(barberiaId);
+
+    if (barberoSeleccionadoId != null) {
+      await cargarHorasOcupadas(barberiaId, barberoSeleccionadoId!);
+    }
+
     notifyListeners();
   }
 
   // ----------------------------
-  // Cargar horas ocupadas
+  // Horas ocupadas por BARBERO
   // ----------------------------
-  Future<void> cargarHorasOcupadas(String barberiaId) async {
+  Future<void> cargarHorasOcupadas(
+      String barberiaId, String barberoId) async {
     if (fechaSeleccionada == null) return;
 
     cargandoHoras = true;
     notifyListeners();
 
     try {
-      final fechaStr = DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
+      final fechaStr =
+      DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
 
       final snap = await _db
           .collection('barberias')
           .doc(barberiaId)
+          .collection('barberos')
+          .doc(barberoId)
           .collection('citas')
           .where('fechaStr', isEqualTo: fechaStr)
           .get();
 
-      horasOcupadas = snap.docs.map((e) => e['hora'] as String).toList();
+      horasOcupadas =
+          snap.docs.map((e) => e['hora'] as String).toList();
 
       horasDisponibles = horasTotales
           .where((h) => !horasOcupadas.contains(h))
           .toList();
-    } catch (_) {}
+    } catch (_) {
+      horasDisponibles = horasTotales;
+    }
 
     cargandoHoras = false;
     notifyListeners();
   }
 
-  // ----------------------------
-  // Seleccionar hora
-  // ----------------------------
   void seleccionarHora(String hora) {
     horaSeleccionada = hora;
     notifyListeners();
   }
 
   // ----------------------------
-  // Guardar cita
+  // Crear cita
   // ----------------------------
   Future<String?> crearCita({
     required String barberiaId,
     required String barberiaNombre,
   }) async {
     if (servicioSeleccionado == null ||
+        barberoSeleccionadoId == null ||
         fechaSeleccionada == null ||
         horaSeleccionada == null) {
       return "Completa todos los campos";
@@ -105,10 +124,16 @@ class ReservarCitaViewModel extends ChangeNotifier {
       final user = _auth.currentUser;
       if (user == null) return "Usuario no autenticado";
 
-      final userDoc = await _db.collection('usuarios').doc(user.uid).get();
-      final nombreCliente = userDoc.data()?["nombre"] ?? "Cliente";
+      final userDoc = await _db
+          .collection('usuarios')
+          .doc(user.uid)
+          .get();
 
-      final fechaStr = DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
+      final nombreCliente =
+          userDoc.data()?["nombre"] ?? "Cliente";
+
+      final fechaStr =
+      DateFormat('yyyy-MM-dd').format(fechaSeleccionada!);
 
       final partes = horaSeleccionada!.split(":");
       final fechaFinal = DateTime(
@@ -119,10 +144,12 @@ class ReservarCitaViewModel extends ChangeNotifier {
         int.parse(partes[1]),
       );
 
-      // Validación: que la hora no esté ocupada
+      // validar disponibilidad
       final check = await _db
           .collection('barberias')
           .doc(barberiaId)
+          .collection('barberos')
+          .doc(barberoSeleccionadoId)
           .collection('citas')
           .where('fechaStr', isEqualTo: fechaStr)
           .where('hora', isEqualTo: horaSeleccionada)
@@ -131,7 +158,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
       if (check.docs.isNotEmpty) {
         guardando = false;
         notifyListeners();
-        return "La hora ya está ocupada";
+        return "La hora ya está ocupada para este barbero";
       }
 
       final data = {
@@ -139,6 +166,10 @@ class ReservarCitaViewModel extends ChangeNotifier {
         'clienteNombre': nombreCliente,
         'barberiaId': barberiaId,
         'barberiaNombre': barberiaNombre,
+
+        'barberoId': barberoSeleccionadoId,
+        'barberoNombre': barberoSeleccionadoNombre,
+
         'servicio': servicioSeleccionado,
         'fecha': Timestamp.fromDate(fechaFinal),
         'fechaStr': fechaStr,
@@ -147,6 +178,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       };
 
+      // cita principal
       final citaRef = _db
           .collection("barberias")
           .doc(barberiaId)
@@ -155,6 +187,17 @@ class ReservarCitaViewModel extends ChangeNotifier {
 
       await citaRef.set(data);
 
+      // cita en barbero
+      await _db
+          .collection("barberias")
+          .doc(barberiaId)
+          .collection("barberos")
+          .doc(barberoSeleccionadoId)
+          .collection("citas")
+          .doc(citaRef.id)
+          .set(data);
+
+      // cita en usuario
       await _db
           .collection("usuarios")
           .doc(user.uid)

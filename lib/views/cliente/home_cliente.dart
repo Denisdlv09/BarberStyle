@@ -85,8 +85,7 @@ class _HomeClienteState extends State<HomeCliente> {
 
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.redAccent),
-                title: const Text("Cerrar sesión",
-                    style: TextStyle(color: Colors.redAccent)),
+                title: const Text("Cerrar sesión", style: TextStyle(color: Colors.redAccent)),
                 onTap: () async {
                   await userVM.logout();
                   if (context.mounted) {
@@ -118,7 +117,7 @@ class _HomeClienteState extends State<HomeCliente> {
         return StreamBuilder(
           stream: userVM.getBarberias(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData) {
               return const Center(
                 child: CircularProgressIndicator(color: Colors.redAccent),
               );
@@ -147,18 +146,15 @@ class _HomeClienteState extends State<HomeCliente> {
                   ),
                   margin: const EdgeInsets.only(bottom: 16),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     leading: CircleAvatar(
                       radius: 30,
                       backgroundColor: Colors.grey.shade800,
                       backgroundImage: (data['imagenLogo']?.isNotEmpty ?? false)
                           ? NetworkImage(data['imagenLogo'])
                           : null,
-                      child: (data['imagenLogo'] == null ||
-                          data['imagenLogo'].isEmpty)
-                          ? const Icon(Icons.store,
-                          color: Colors.white70, size: 30)
+                      child: (data['imagenLogo'] == null || data['imagenLogo'].isEmpty)
+                          ? const Icon(Icons.store, color: Colors.white70, size: 30)
                           : null,
                     ),
                     title: Text(
@@ -172,14 +168,12 @@ class _HomeClienteState extends State<HomeCliente> {
                       data['direccion'] ?? 'Dirección no disponible',
                       style: const TextStyle(color: Colors.white70),
                     ),
-                    trailing:
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              BarberiaDetalle(barberiaId: data['id']),
+                          builder: (_) => BarberiaDetalle(barberiaId: data['id']),
                         ),
                       );
                     },
@@ -193,7 +187,7 @@ class _HomeClienteState extends State<HomeCliente> {
     );
   }
 
-  /// 📅 Mis citas (CON nombre de barbería añadido)
+  /// 📅 Mis citas (con barbero incluido)
   Widget _buildMisCitas(CitasViewModel citasVM) {
     final userId = context.read<UserViewModel>().currentUserId;
 
@@ -250,25 +244,21 @@ class _HomeClienteState extends State<HomeCliente> {
                   ),
                 ),
 
-                // ⭐️ AQUI AÑADIMOS EL NOMBRE DE LA BARBERÍA ⭐️
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "💈 Barbería: ${cita.barberiaNombre}",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
+                    Text("💈 Barbería: ${cita.barberiaNombre}",
+                        style: const TextStyle(color: Colors.white70)),
                     const SizedBox(height: 4),
-                    Text(
-                      "📅 $fechaFormateada",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
+
+                    /// ⭐️ NUEVO: MOSTRAR NOMBRE DEL BARBERO ⭐️
+                    if (cita.barberoNombre.isNotEmpty)
+                      Text("🧔 Barbero: ${cita.barberoNombre}",
+                          style: const TextStyle(color: Colors.white70)),
+
+                    const SizedBox(height: 4),
+                    Text("📅 $fechaFormateada",
+                        style: const TextStyle(color: Colors.white70)),
                   ],
                 ),
 
@@ -287,33 +277,30 @@ class _HomeClienteState extends State<HomeCliente> {
                         ),
                         actions: [
                           TextButton(
-                            onPressed: () =>
-                                Navigator.pop(context, false),
-                            child: const Text(
-                              "No",
-                              style: TextStyle(color: Colors.white70),
-                            ),
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("No", style: TextStyle(color: Colors.white70)),
                           ),
                           TextButton(
-                            onPressed: () =>
-                                Navigator.pop(context, true),
-                            child: const Text(
-                              "Sí, cancelar",
-                              style: TextStyle(color: Colors.redAccent),
-                            ),
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Sí, cancelar",
+                                style: TextStyle(color: Colors.redAccent)),
                           ),
                         ],
                       ),
                     );
 
                     if (confirm == true) {
-                      await citasVM.cancelarCita(cita);
+                      await citasVM.eliminarCita(
+                        barberiaId: cita.barberiaId,
+                        citaId: cita.id,
+                        clienteId: cita.clienteId,
+                        barberoId: cita.barberoId, // ⭐️ AÑADIDO
+                      );
 
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content:
-                            Text("Cita cancelada correctamente"),
+                            content: Text("Cita cancelada correctamente"),
                           ),
                         );
                       }

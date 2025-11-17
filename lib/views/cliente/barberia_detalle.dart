@@ -19,10 +19,18 @@ class BarberiaDetalle extends StatelessWidget {
   }
 }
 
-class _BarberiaDetalleBody extends StatelessWidget {
+class _BarberiaDetalleBody extends StatefulWidget {
   final String barberiaId;
 
   const _BarberiaDetalleBody({required this.barberiaId});
+
+  @override
+  State<_BarberiaDetalleBody> createState() => _BarberiaDetalleBodyState();
+}
+
+class _BarberiaDetalleBodyState extends State<_BarberiaDetalleBody> {
+  String? barberoSeleccionadoId;
+  String? barberoSeleccionadoNombre;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +60,9 @@ class _BarberiaDetalleBody extends StatelessWidget {
     final descripcion = data['descripcion'] ?? 'Sin descripción';
     final imagenLogo = data['imagenLogo'];
     final rating = vm.ratingPromedio;
+
+    // LISTA DE BARBEROS
+    final barberos = vm.barberos; // ← lo añadimos en el ViewModel
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -121,38 +132,96 @@ class _BarberiaDetalleBody extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+
+            // -----------------------------------------------------
+            // 🔥 SELECCIÓN DE BARBERO (NUEVO + ESTILO MODERNO)
+            // -----------------------------------------------------
 
             const Text(
-              "Descripción",
+              "Elige un barbero",
               style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
-            Text(
-              descripcion,
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
-            ),
+            if (barberos.isEmpty)
+              const Text("Esta barbería no tiene barberos registrados.",
+                  style: TextStyle(color: Colors.white70)),
+
+            if (barberos.isNotEmpty)
+              Column(
+                children: barberos.map((barbero) {
+                  final id = barbero['id'];
+                  final nombre = barbero['nombre'];
+
+                  final seleccionado = (id == barberoSeleccionadoId);
+
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: seleccionado ? Colors.redAccent : Colors.grey[900],
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: seleccionado ? Colors.white : Colors.grey.shade700,
+                        width: seleccionado ? 2 : 1,
+                      ),
+                      boxShadow: seleccionado
+                          ? [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
+                      ]
+                          : [],
+                    ),
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                        backgroundColor: Colors.white10,
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+                      title: Text(
+                        nombre,
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          barberoSeleccionadoId = id;
+                          barberoSeleccionadoNombre = nombre;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
 
             const SizedBox(height: 30),
 
-            // BOTÓN PEDIR CITA
+            // -----------------------------------------------------
+            // BOTÓN PEDIR CITA (bloqueado si no eligió barbero)
+            // -----------------------------------------------------
             Center(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor:
+                  barberoSeleccionadoId == null ? Colors.grey : Colors.green,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 ),
                 icon: const Icon(Icons.calendar_today, color: Colors.white),
                 label: const Text("Pedir cita", style: TextStyle(color: Colors.white)),
-                onPressed: () {
+                onPressed: barberoSeleccionadoId == null
+                    ? null
+                    : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ReservarCita(
-                        barberiaId: barberiaId,
+                        barberiaId: widget.barberiaId,
                         barberiaNombre: nombre,
+                        barberoId: barberoSeleccionadoId!,
+                        barberoNombre: barberoSeleccionadoNombre!,
                       ),
                     ),
                   );
@@ -176,7 +245,7 @@ class _BarberiaDetalleBody extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ResenarBarberia(
-                        barberiaId: barberiaId,
+                        barberiaId: widget.barberiaId,
                         barberiaNombre: nombre,
                       ),
                     ),

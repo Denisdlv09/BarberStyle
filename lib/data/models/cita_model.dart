@@ -7,6 +7,8 @@ class CitaModel {
   final String clienteNombre;
   final String barberiaId;
   final String barberiaNombre;
+  final String barberoId;       // puede estar vacío
+  final String barberoNombre;   // puede estar vacío
   final DateTime fecha;
   final String servicio;
   final String estado;
@@ -18,20 +20,24 @@ class CitaModel {
     required this.clienteNombre,
     required this.barberiaId,
     required this.barberiaNombre,
+    required this.barberoId,
+    required this.barberoNombre,
     required this.fecha,
     required this.servicio,
     required this.estado,
     required this.confirmada,
   });
 
-  /// ✔️ Corrección principal: permitir id nulo
+  /// ✔ Permite id nulo
   factory CitaModel.fromMap(Map<String, dynamic> map, String? id) {
     return CitaModel(
-      id: id ?? '',  // evita error de null
+      id: id ?? '',
       clienteId: map['clienteId'] ?? '',
       clienteNombre: map['clienteNombre'] ?? 'Cliente',
       barberiaId: map['barberiaId'] ?? '',
       barberiaNombre: map['barberiaNombre'] ?? '',
+      barberoId: map['barberoId'] ?? '',
+      barberoNombre: map['barberoNombre'] ?? '',
       fecha: _parseDate(map['fecha']),
       servicio: map['servicio'] ?? '',
       estado: map['estado'] ?? 'pendiente',
@@ -45,6 +51,8 @@ class CitaModel {
       'clienteNombre': clienteNombre,
       'barberiaId': barberiaId,
       'barberiaNombre': barberiaNombre,
+      'barberoId': barberoId,
+      'barberoNombre': barberoNombre,
       'fecha': Timestamp.fromDate(fecha),
       'servicio': servicio,
       'estado': estado,
@@ -59,13 +67,15 @@ class CitaModel {
     return DateTime.now();
   }
 
-  /// ✔️ copyWith necesario para el CitaService (evita error del copyWith)
+  /// ✔ copyWith completo y necesario
   CitaModel copyWith({
     String? id,
     String? clienteId,
     String? clienteNombre,
     String? barberiaId,
     String? barberiaNombre,
+    String? barberoId,
+    String? barberoNombre,
     DateTime? fecha,
     String? servicio,
     String? estado,
@@ -77,6 +87,8 @@ class CitaModel {
       clienteNombre: clienteNombre ?? this.clienteNombre,
       barberiaId: barberiaId ?? this.barberiaId,
       barberiaNombre: barberiaNombre ?? this.barberiaNombre,
+      barberoId: barberoId ?? this.barberoId,
+      barberoNombre: barberoNombre ?? this.barberoNombre,
       fecha: fecha ?? this.fecha,
       servicio: servicio ?? this.servicio,
       estado: estado ?? this.estado,

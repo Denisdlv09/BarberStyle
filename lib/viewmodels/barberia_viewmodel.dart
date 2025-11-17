@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -13,16 +12,28 @@ class BarberiaViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> servicios = [];
   double ratingPromedio = 0;
 
+  /// 🔥 NUEVO: Lista de barberos
+  List<Map<String, dynamic>> barberos = [];
+
+  /// 🔥 NUEVO: Barbero seleccionado
+  String? barberoSeleccionadoId;
+  String? barberoSeleccionadoNombre;
+
   StreamSubscription<DocumentSnapshot>? _barberiaListener;
   StreamSubscription<QuerySnapshot>? _serviciosListener;
 
-  /// 🔥 NUEVO: escucha cambios en tiempo real
+  /// 🔥 NUEVO: Listener barberos
+  StreamSubscription<QuerySnapshot>? _barberosListener;
+
+  // =====================================================
+  // Cargar todo de la barbería
+  // =====================================================
   Future<void> cargarBarberia(String barberiaId) async {
     isLoading = true;
     notifyListeners();
 
     try {
-      // ---------- LISTENER DE BARBERÍA ----------
+      // ---------- BARBERÍA ----------
       _barberiaListener = _db
           .collection('barberias')
           .doc(barberiaId)
@@ -32,10 +43,10 @@ class BarberiaViewModel extends ChangeNotifier {
         ratingPromedio =
             (barberiaData?["ratingPromedio"] ?? 0).toDouble();
 
-        notifyListeners(); // 🔥 se refresca INSTANTÁNEAMENTE
+        notifyListeners();
       });
 
-      // ---------- LISTENER DE SERVICIOS ----------
+      // ---------- SERVICIOS ----------
       _serviciosListener = _db
           .collection('barberias')
           .doc(barberiaId)
@@ -49,6 +60,20 @@ class BarberiaViewModel extends ChangeNotifier {
         notifyListeners();
       });
 
+      // ---------- 🔥 BARBEROS ----------
+      _barberosListener = _db
+          .collection('barberias')
+          .doc(barberiaId)
+          .collection('barberos')
+          .orderBy("nombre")
+          .snapshots()
+          .listen((snap) {
+        barberos =
+            snap.docs.map((d) => {...d.data(), "id": d.id}).toList();
+
+        notifyListeners();
+      });
+
     } catch (e) {
       errorMessage = "Error cargando barbería";
     }
@@ -57,10 +82,32 @@ class BarberiaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // =====================================================
+  // 🔥 Seleccionar barbero
+  // =====================================================
+  void seleccionarBarbero(String id, String nombre) {
+    barberoSeleccionadoId = id;
+    barberoSeleccionadoNombre = nombre;
+
+    notifyListeners();
+  }
+
+  // =====================================================
+  // 🔥 Reset barbero
+  // =====================================================
+  void limpiarBarbero() {
+    barberoSeleccionadoId = null;
+    barberoSeleccionadoNombre = null;
+
+    notifyListeners();
+  }
+
+  // =====================================================
   @override
   void dispose() {
     _barberiaListener?.cancel();
     _serviciosListener?.cancel();
+    _barberosListener?.cancel();
     super.dispose();
   }
 }
