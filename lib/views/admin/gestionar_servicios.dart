@@ -15,17 +15,14 @@ class GestionarServicios extends StatefulWidget {
 class _GestionarServiciosState extends State<GestionarServicios> {
   final TextEditingController _nombre = TextEditingController();
   final TextEditingController _precio = TextEditingController();
-  final TextEditingController _duracion = TextEditingController();
 
   void _mostrarDialogo({ServicioModel? servicio}) {
     if (servicio != null) {
       _nombre.text = servicio.nombre;
       _precio.text = servicio.precio.toString();
-      _duracion.text = servicio.duracion.toString();
     } else {
       _nombre.clear();
       _precio.clear();
-      _duracion.clear();
     }
 
     showDialog(
@@ -44,8 +41,12 @@ class _GestionarServiciosState extends State<GestionarServicios> {
                 _campo(_nombre, "Nombre del servicio"),
                 const SizedBox(height: 10),
                 _campo(_precio, "Precio (€)", keyboard: TextInputType.number),
-                const SizedBox(height: 10),
-                _campo(_duracion, "Duración (min)", keyboard: TextInputType.number),
+
+                const SizedBox(height: 15),
+                const Text(
+                  "⏱ La duración será siempre 30 minutos.",
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
               ],
             ),
             actions: [
@@ -62,9 +63,8 @@ class _GestionarServiciosState extends State<GestionarServicios> {
                     : () async {
                   final nombre = _nombre.text.trim();
                   final precio = double.tryParse(_precio.text.trim());
-                  final duracion = int.tryParse(_duracion.text.trim());
 
-                  if (nombre.isEmpty || precio == null || duracion == null) {
+                  if (nombre.isEmpty || precio == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Completa todos los campos correctamente"),
@@ -74,9 +74,18 @@ class _GestionarServiciosState extends State<GestionarServicios> {
                   }
 
                   if (servicio == null) {
-                    await vm.agregarServicio(widget.barberiaId, nombre, precio, duracion);
+                    await vm.agregarServicio(
+                      widget.barberiaId,
+                      nombre,
+                      precio,
+                    );
                   } else {
-                    await vm.editarServicio(widget.barberiaId, servicio.id, nombre, precio, duracion);
+                    await vm.editarServicio(
+                      widget.barberiaId,
+                      servicio.id,
+                      nombre,
+                      precio,
+                    );
                   }
 
                   if (mounted) Navigator.pop(context);
@@ -155,7 +164,7 @@ class _GestionarServiciosState extends State<GestionarServicios> {
                   leading: const Icon(Icons.cut, color: Colors.redAccent),
                   title: Text(s.nombre, style: const TextStyle(color: Colors.white)),
                   subtitle: Text(
-                    "€${s.precio} | ${s.duracion} min",
+                    "€${s.precio} | 30 min",
                     style: const TextStyle(color: Colors.white70),
                   ),
                   trailing: Row(

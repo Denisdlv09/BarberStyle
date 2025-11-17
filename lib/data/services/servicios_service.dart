@@ -42,7 +42,7 @@ class ServicioService {
           .doc(barberiaId)
           .collection('servicios')
           .doc(servicio.id)
-          .update(servicio.toMap());
+          .update(servicio.toMap()); // 🔥 Guardará duracion: 30
     } catch (e) {
       throw Exception("Error actualizando servicio: $e");
     }

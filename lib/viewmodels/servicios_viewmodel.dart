@@ -17,14 +17,13 @@ class ServiciosViewModel extends ChangeNotifier {
   }
 
   // -------------------------------------------------------
-  // Agregar servicio
+  // Agregar servicio (duración fija = 30)
   // -------------------------------------------------------
 
   Future<void> agregarServicio(
       String barberiaId,
       String nombre,
       double precio,
-      int duracion,
       ) async {
     isLoading = true;
     errorMessage = null;
@@ -35,7 +34,6 @@ class ServiciosViewModel extends ChangeNotifier {
         id: '',
         nombre: nombre,
         precio: precio,
-        duracion: duracion,
       );
 
       await _service.agregarServicio(barberiaId, servicio);
@@ -49,7 +47,7 @@ class ServiciosViewModel extends ChangeNotifier {
   }
 
   // -------------------------------------------------------
-  // Editar servicio
+  // Editar servicio (duración fija = 30)
   // -------------------------------------------------------
 
   Future<void> editarServicio(
@@ -57,7 +55,6 @@ class ServiciosViewModel extends ChangeNotifier {
       String servicioId,
       String nombre,
       double precio,
-      int duracion,
       ) async {
     isLoading = true;
     errorMessage = null;
@@ -68,7 +65,6 @@ class ServiciosViewModel extends ChangeNotifier {
         id: servicioId,
         nombre: nombre,
         precio: precio,
-        duracion: duracion,
       );
 
       await _service.actualizarServicio(barberiaId, servicio);

@@ -3,13 +3,14 @@ class ServicioModel {
   final String id;
   final String nombre;
   final double precio;
-  final int duracion;
+
+  /// 🔥 Duración fija siempre a 30 min
+  final int duracion = 30;
 
   ServicioModel({
     required this.id,
     required this.nombre,
     required this.precio,
-    required this.duracion,
   });
 
   factory ServicioModel.fromMap(Map<String, dynamic> map, String id) {
@@ -17,7 +18,6 @@ class ServicioModel {
       id: id,
       nombre: map['nombre'] ?? '',
       precio: (map['precio'] ?? 0).toDouble(),
-      duracion: map['duracion'] ?? 0,
     );
   }
 
@@ -25,7 +25,7 @@ class ServicioModel {
     return {
       'nombre': nombre,
       'precio': precio,
-      'duracion': duracion,
+      'duracion': 30, // SIEMPRE 30
     };
   }
 }
