@@ -1,4 +1,4 @@
-/// 📌 Modelo de Barbero
+///  Modelo de Barbero
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BarberoModel {

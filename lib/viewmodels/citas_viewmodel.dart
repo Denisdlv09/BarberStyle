@@ -8,9 +8,8 @@ class CitasViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  // -------------------------------------------------------
+
   // STREAMS
-  // -------------------------------------------------------
 
   Stream<List<CitaModel>> getCitasPorUsuario(String userId) {
     return _citaService.obtenerCitasPorUsuario(userId);
@@ -20,9 +19,8 @@ class CitasViewModel extends ChangeNotifier {
     return _citaService.obtenerCitasPorBarberia(barberiaId);
   }
 
-  // -------------------------------------------------------
+
   // CREAR CITA
-  // -------------------------------------------------------
 
   Future<void> crearCita(Map<String, dynamic> data) async {
     try {
@@ -40,9 +38,8 @@ class CitasViewModel extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
+
   // ACCIONES SOBRE CITAS
-  // -------------------------------------------------------
 
   /// Cliente cancela su cita (equivalente a eliminarla)
   Future<void> cancelarCita(CitaModel cita) async {
@@ -59,7 +56,7 @@ class CitasViewModel extends ChangeNotifier {
     }
   }
 
-  /// ADMIN elimina cita (barberoId opcional)
+  /// ADMIN elimina cita
   Future<void> eliminarCita({
     required String barberiaId,
     required String citaId,

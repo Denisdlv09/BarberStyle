@@ -251,7 +251,7 @@ class _HomeClienteState extends State<HomeCliente> {
                         style: const TextStyle(color: Colors.white70)),
                     const SizedBox(height: 4),
 
-                    /// ⭐️ NUEVO: MOSTRAR NOMBRE DEL BARBERO ⭐️
+                    ///  NUEVO: MOSTRAR NOMBRE DEL BARBERO
                     if (cita.barberoNombre.isNotEmpty)
                       Text("🧔 Barbero: ${cita.barberoNombre}",
                           style: const TextStyle(color: Colors.white70)),
@@ -294,7 +294,7 @@ class _HomeClienteState extends State<HomeCliente> {
                         barberiaId: cita.barberiaId,
                         citaId: cita.id,
                         clienteId: cita.clienteId,
-                        barberoId: cita.barberoId, // ⭐️ AÑADIDO
+                        barberoId: cita.barberoId,
                       );
 
                       if (context.mounted) {

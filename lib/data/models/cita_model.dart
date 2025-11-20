@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// 📌 Modelo de Cita
+///  Modelo de Cita
 class CitaModel {
   final String id;
   final String clienteId;
   final String clienteNombre;
   final String barberiaId;
   final String barberiaNombre;
-  final String barberoId;       // puede estar vacío
-  final String barberoNombre;   // puede estar vacío
+  final String barberoId;
+  final String barberoNombre;
   final DateTime fecha;
   final String servicio;
   final String estado;
@@ -28,7 +28,7 @@ class CitaModel {
     required this.confirmada,
   });
 
-  /// ✔ Permite id nulo
+  ///  Permite id nulo
   factory CitaModel.fromMap(Map<String, dynamic> map, String? id) {
     return CitaModel(
       id: id ?? '',
@@ -67,7 +67,7 @@ class CitaModel {
     return DateTime.now();
   }
 
-  /// ✔ copyWith completo y necesario
+
   CitaModel copyWith({
     String? id,
     String? clienteId,

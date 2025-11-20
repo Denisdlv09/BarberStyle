@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// 📌 Modelo de Barbería
+///  Modelo de Barbería
 class BarberiaModel {
   final String id;
   final String nombre;

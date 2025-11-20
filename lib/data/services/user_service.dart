@@ -7,7 +7,7 @@ class UserService {
 
   User? get currentUser => _auth.currentUser;
 
-  /// 🔹 Obtener datos completos del usuario actual
+  ///  Obtener datos completos del usuario actual
   Future<Map<String, dynamic>?> getUserData() async {
     try {
       final user = _auth.currentUser;
@@ -21,7 +21,7 @@ class UserService {
     }
   }
 
-  /// 🔹 Actualizar datos del usuario
+  ///  Actualizar datos del usuario
   Future<void> updateUserData(Map<String, dynamic> data) async {
     try {
       final user = _auth.currentUser;
@@ -33,7 +33,7 @@ class UserService {
     }
   }
 
-  /// 🔹 Eliminar cuenta y todas sus citas
+  ///  Eliminar cuenta y todas sus citas
   Future<void> deleteUserAccount() async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -61,7 +61,7 @@ class UserService {
     await _auth.signOut();
   }
 
-  /// 🔹 Stream en tiempo real de barberías
+  ///  Stream en tiempo real de barberías
   Stream<List<Map<String, dynamic>>> getBarberiasStream() {
     return _db
         .collection('barberias')

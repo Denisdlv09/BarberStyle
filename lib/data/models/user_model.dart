@@ -1,4 +1,4 @@
-/// 📌 Modelo de Usuario
+///  Modelo de Usuario
 class UserModel {
   final String id;
   final String nombre;

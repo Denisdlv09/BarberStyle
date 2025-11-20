@@ -1,10 +1,10 @@
-/// 📌 Modelo de Servicio
+///  Modelo de Servicio
 class ServicioModel {
   final String id;
   final String nombre;
   final double precio;
 
-  /// 🔥 Duración fija siempre a 30 min
+  ///  Duración fija siempre a 30 min
   final int duracion = 30;
 
   ServicioModel({

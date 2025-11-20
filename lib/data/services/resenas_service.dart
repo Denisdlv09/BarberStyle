@@ -4,7 +4,7 @@ import '../models/resena_model.dart';
 class ReviewService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// 🔹 Obtener reseñas de una barbería
+  ///  Obtener reseñas de una barbería
   Stream<List<ReviewModel>> obtenerReviewsPorBarberia(String barberiaId) {
     return _db
         .collection('barberias')
@@ -17,7 +17,7 @@ class ReviewService {
         .toList());
   }
 
-  /// 🔹 Obtener reseña de un usuario dentro de una barbería
+  ///  Obtener reseña de un usuario dentro de una barbería
   Future<ReviewModel?> obtenerReviewUsuario(
       String barberiaId, String userId) async {
     final snap = await _db
@@ -32,7 +32,7 @@ class ReviewService {
     return ReviewModel.fromMap(snap.docs.first.data(), snap.docs.first.id);
   }
 
-  /// 🔹 Guardar o actualizar reseña
+  ///  Guardar o actualizar reseña
   Future<void> guardarReview(ReviewModel review) async {
     await _db
         .collection('barberias')
@@ -42,7 +42,7 @@ class ReviewService {
         .set(review.toMap(), SetOptions(merge: true));
   }
 
-  /// 🔹 Obtener todas las reseñas creadas por este usuario (desde cualquier barbería)
+  ///  Obtener todas las reseñas creadas por este usuario (desde cualquier barbería)
   Stream<List<ReviewModel>> obtenerResenasDelUsuario(String userId) {
     return _db
         .collectionGroup('resenas')
@@ -53,7 +53,7 @@ class ReviewService {
         snap.docs.map((d) => ReviewModel.fromMap(d.data(), d.id)).toList());
   }
 
-  /// 🔹 Eliminar reseña
+  ///  Eliminar reseña
   Future<void> eliminarReview(String barberiaId, String reviewId) async {
     await _db
         .collection('barberias')
@@ -63,7 +63,7 @@ class ReviewService {
         .delete();
   }
 
-  /// 🔹 Calcular promedio de la barbería
+  ///  Calcular promedio de la barbería
   Future<double> calcularPromedio(String barberiaId) async {
     final snap = await _db
         .collection('barberias')
@@ -80,7 +80,7 @@ class ReviewService {
     return total / snap.docs.length;
   }
 
-  /// 🔹 Guardar promedio en la barbería
+  ///  Guardar promedio en la barbería
   Future<void> actualizarPromedio(String barberiaId) async {
     final promedio = await calcularPromedio(barberiaId);
 

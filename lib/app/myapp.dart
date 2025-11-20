@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// 🔹 ViewModels
+//  ViewModels
 import 'package:barberstyle/viewmodels/auth_viewmodel.dart';
 import 'package:barberstyle/viewmodels/user_viewmodel.dart';
 import 'package:barberstyle/viewmodels/citas_viewmodel.dart';
 import 'package:barberstyle/viewmodels/barberias_viewmodel.dart';
 
-// 🔹 Vistas principales
+//  Vistas principales
 import 'package:barberstyle/views/splash/splash_window.dart';
 import 'package:barberstyle/views/auth/login_window.dart';
 import 'package:barberstyle/views/auth/register_window.dart';
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        // 🟢 Pantalla inicial
+        //  Pantalla inicial
         initialRoute: '/splash',
 
         routes: {

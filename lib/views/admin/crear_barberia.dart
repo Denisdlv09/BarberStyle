@@ -20,7 +20,7 @@ class _CrearBarberiaState extends State<CrearBarberia> {
   final _telefonoCtrl = TextEditingController();
   final _descripcionCtrl = TextEditingController();
 
-  /// 🔥 Lista de barberos nuevos
+  ///  Lista de barberos nuevos
   final List<TextEditingController> _barberosCtrl = [];
 
   @override
@@ -81,9 +81,8 @@ class _CrearBarberiaState extends State<CrearBarberia> {
                 _field(_descripcionCtrl, Icons.description, "Descripción", maxLines: 3),
                 const SizedBox(height: 30),
 
-                // -------------------------------------------------
-                //  🔥 LISTA DE BARBEROS
-                // -------------------------------------------------
+
+                //   LISTA DE BARBEROS
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -136,9 +135,8 @@ class _CrearBarberiaState extends State<CrearBarberia> {
 
                 const SizedBox(height: 30),
 
-                // -------------------------------------------------
+
                 //  BOTÓN CREAR
-                // -------------------------------------------------
                 vm.isLoading
                     ? const CircularProgressIndicator(color: Colors.redAccent)
                     : ElevatedButton.icon(

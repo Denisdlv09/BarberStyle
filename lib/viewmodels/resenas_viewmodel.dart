@@ -15,14 +15,14 @@ class ResenasViewModel extends ChangeNotifier {
 
   ReviewModel? reviewActual;
 
-  /// 🔥 Stream de TODAS las reseñas del usuario
+  ///  Stream de TODAS las reseñas del usuario
   Stream<List<ReviewModel>> getResenasDelUsuario() {
     final user = _auth.currentUser;
     if (user == null) return const Stream.empty();
     return _service.obtenerResenasDelUsuario(user.uid);
   }
 
-  /// 🔹 Cargar reseña existente de este usuario en esta barbería
+  ///  Cargar reseña existente de este usuario en esta barbería
   Future<void> cargarResena(String barberiaId) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -40,7 +40,7 @@ class ResenasViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 🔹 Guardar o actualizar reseña
+  ///  Guardar o actualizar reseña
   Future<void> guardarResena({
     required String barberiaId,
     required String barberiaNombre,
@@ -85,7 +85,7 @@ class ResenasViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 🔹 Eliminar reseña
+  ///  Eliminar reseña
   Future<void> eliminarResena(String barberiaId) async {
     if (reviewActual == null) return;
 

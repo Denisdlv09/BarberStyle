@@ -35,7 +35,7 @@ class _RegisterWindowState extends State<RegisterWindow> {
     final user = await authVM.register(
       nombre: _nombreCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
-      telefono: _telefonoCtrl.text.trim(), // Ahora se envía correctamente
+      telefono: _telefonoCtrl.text.trim(),
       password: _passwordCtrl.text.trim(),
       rol: _rol,
     );

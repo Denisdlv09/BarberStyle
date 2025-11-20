@@ -15,9 +15,8 @@ class BarberiasViewModel extends ChangeNotifier {
 
   BarberiasViewModel();
 
-  // -------------------------------------------------------
-  // Cargar barbería del admin (igual que antes)
-  // -------------------------------------------------------
+
+  // Cargar barbería del admin
   Future<void> loadBarberiaByAdmin(String adminId) async {
     isLoading = true;
     errorMessage = null;
@@ -41,9 +40,8 @@ class BarberiasViewModel extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
+
   // Crear barbería (devuelve id)
-  // -------------------------------------------------------
   Future<String?> crearBarberia(Map<String, dynamic> data) async {
     isLoading = true;
     notifyListeners();
@@ -64,9 +62,8 @@ class BarberiasViewModel extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
+
   // Actualizar barbería (sin tocar barberos)
-  // -------------------------------------------------------
   Future<void> actualizarBarberia(String id, Map<String, dynamic> data) async {
     isLoading = true;
     notifyListeners();
@@ -86,9 +83,8 @@ class BarberiasViewModel extends ChangeNotifier {
     }
   }
 
-  // ============================
-  // 🔥 CRUD BARBEROS (directo con Firestore)
-  // ============================
+
+  //  CRUD BARBEROS (directo con Firestore)
   /// Agregar barbero (crea doc en /barberias/{barberiaId}/barberos)
   Future<String?> agregarBarbero(String barberiaId, String nombre) async {
     try {
@@ -130,7 +126,7 @@ class BarberiasViewModel extends ChangeNotifier {
     }
   }
 
-  /// Eliminar barbero (no elimina sus citas; si quieres eso también, lo añadimos)
+  /// Eliminar barbero
   Future<bool> eliminarBarbero(String barberiaId, String barberoId) async {
     try {
       await _db

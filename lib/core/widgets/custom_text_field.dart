@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 
-/// 📝 Campo de texto reutilizable con estilo unificado y validaciones
+///  Campo de texto reutilizable con estilo unificado y validaciones
 class CustomTextField extends StatelessWidget {
   final String label;
   final String? hint;

@@ -4,7 +4,7 @@ import 'package:barberstyle/data/models/servicio_model.dart';
 class ServicioService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// 🔹 Obtener servicios de una barbería
+  ///  Obtener servicios de una barbería
   Stream<List<ServicioModel>> obtenerServicios(String barberiaId) {
     return _db
         .collection('barberias')
@@ -16,7 +16,7 @@ class ServicioService {
         snapshot.docs.map((doc) => ServicioModel.fromMap(doc.data(), doc.id)).toList());
   }
 
-  /// 🔹 Agregar servicio y devolver ID
+  ///  Agregar servicio y devolver ID
   Future<String> agregarServicio(String barberiaId, ServicioModel servicio) async {
     try {
       final ref = await _db
@@ -34,7 +34,7 @@ class ServicioService {
     }
   }
 
-  /// 🔹 Actualizar servicio existente
+  ///  Actualizar servicio existente
   Future<void> actualizarServicio(String barberiaId, ServicioModel servicio) async {
     try {
       await _db
@@ -42,13 +42,13 @@ class ServicioService {
           .doc(barberiaId)
           .collection('servicios')
           .doc(servicio.id)
-          .update(servicio.toMap()); // 🔥 Guardará duracion: 30
+          .update(servicio.toMap()); //  Guardará duracion: 30
     } catch (e) {
       throw Exception("Error actualizando servicio: $e");
     }
   }
 
-  /// 🔹 Eliminar servicio
+  ///  Eliminar servicio
   Future<void> eliminarServicio(String barberiaId, String servicioId) async {
     try {
       await _db

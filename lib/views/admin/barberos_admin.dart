@@ -104,9 +104,8 @@ class BarberosAdmin extends StatelessWidget {
     );
   }
 
-  // =======================================================================================
-  // 🟢 DIÁLOGO → AGREGAR BARBERO
-  // =======================================================================================
+
+  //  DIÁLOGO → AGREGAR BARBERO
 
   void _mostrarDialogoAgregar(BuildContext context) {
     final nombreCtrl = TextEditingController();
@@ -156,9 +155,8 @@ class BarberosAdmin extends StatelessWidget {
     );
   }
 
-  // =======================================================================================
-  // 🟡 DIÁLOGO → EDITAR BARBERO
-  // =======================================================================================
+
+  //  DIÁLOGO → EDITAR BARBERO
 
   void _mostrarDialogoEditar(BuildContext context, BarberoModel barbero) {
     final nombreCtrl = TextEditingController(text: barbero.nombre);
@@ -201,9 +199,8 @@ class BarberosAdmin extends StatelessWidget {
     );
   }
 
-  // =======================================================================================
-  // 🔴 DIÁLOGO → ELIMINAR BARBERO
-  // =======================================================================================
+
+  //  DIÁLOGO → ELIMINAR BARBERO
 
   void _mostrarDialogoEliminar(BuildContext context, BarberoModel barbero) {
     showDialog(
@@ -226,7 +223,7 @@ class BarberosAdmin extends StatelessWidget {
             onPressed: () async {
               await BarberosService().eliminarBarbero(
                 barberiaId,
-                barbero.id!,   // ← CORREGIDO AQUÍ
+                barbero.id!,
                 borrarCitas: true,
               );
 

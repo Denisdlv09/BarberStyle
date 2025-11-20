@@ -14,9 +14,8 @@ class AuthViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // -------------------------------------------------------
+
   // Helpers internos
-  // -------------------------------------------------------
 
   void _setLoading(bool value) {
     _isLoading = value;
@@ -33,9 +32,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
-  // 🔹 Método necesario en SplashScreen
-  // -------------------------------------------------------
+
+  //  Método necesario en SplashScreen
 
   Future<UserModel?> currentUser() async {
     final user = await _authService.getCurrentUser();
@@ -47,9 +45,8 @@ class AuthViewModel extends ChangeNotifier {
     return user;
   }
 
-  // -------------------------------------------------------
+
   // LOGIN
-  // -------------------------------------------------------
 
   Future<UserModel?> login(String email, String password) async {
     _setLoading(true);
@@ -73,9 +70,8 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
+
   // REGISTRO
-  // -------------------------------------------------------
 
   Future<UserModel?> register({
     required String nombre,
@@ -111,9 +107,8 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  // -------------------------------------------------------
+
   // LOGOUT
-  // -------------------------------------------------------
 
   Future<void> logout() async {
     await _authService.signOut();

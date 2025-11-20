@@ -13,7 +13,7 @@ class MisCitas extends StatefulWidget {
 class _MisCitasState extends State<MisCitas> {
   final user = FirebaseAuth.instance.currentUser;
 
-  /// 🔹 Cancela una cita (actualiza su estado)
+  ///  Cancela una cita (actualiza su estado)
   Future<void> _cancelarCita(String citaId) async {
     try {
       await FirebaseFirestore.instance.collection('citas').doc(citaId).update({
@@ -29,7 +29,7 @@ class _MisCitasState extends State<MisCitas> {
     }
   }
 
-  /// 🔹 Formatea la fecha
+  ///  Formatea la fecha
   String _formatearFecha(Timestamp timestamp) {
     final date = timestamp.toDate();
     return DateFormat('dd/MM/yyyy HH:mm').format(date);

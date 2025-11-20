@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// 🧾 Estilos de texto globales
+///  Estilos de texto globales
 class AppTextStyles {
   AppTextStyles._();
 

@@ -10,9 +10,8 @@ class UserViewModel extends ChangeNotifier {
 
   String? get currentUserId => _userService.currentUser?.uid;
 
-  // -------------------------------------------------------
+
   // Cargar datos del usuario
-  // -------------------------------------------------------
 
   Future<void> loadUserData() async {
     isLoading = true;
@@ -29,9 +28,8 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Actualizar datos del usuario
-  // -------------------------------------------------------
 
   Future<void> updateUserData(Map<String, dynamic> data) async {
     isLoading = true;
@@ -49,9 +47,8 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Logout
-  // -------------------------------------------------------
 
   Future<void> logout() async {
     await _userService.signOut();
@@ -59,9 +56,8 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Eliminar cuenta completa
-  // -------------------------------------------------------
 
   Future<void> deleteAccount() async {
     await _userService.deleteUserAccount();
@@ -69,9 +65,8 @@ class UserViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Obtener listado de barberías
-  // -------------------------------------------------------
 
   Stream<List<Map<String, dynamic>>> getBarberias() {
     return _userService.getBarberiasStream();

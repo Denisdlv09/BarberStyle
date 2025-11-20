@@ -8,17 +8,15 @@ class ServiciosViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  // -------------------------------------------------------
+
   // Obtener servicios como Stream
-  // -------------------------------------------------------
 
   Stream<List<ServicioModel>> getServicios(String barberiaId) {
     return _service.obtenerServicios(barberiaId);
   }
 
-  // -------------------------------------------------------
+
   // Agregar servicio (duración fija = 30)
-  // -------------------------------------------------------
 
   Future<void> agregarServicio(
       String barberiaId,
@@ -46,9 +44,8 @@ class ServiciosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Editar servicio (duración fija = 30)
-  // -------------------------------------------------------
 
   Future<void> editarServicio(
       String barberiaId,
@@ -77,9 +74,8 @@ class ServiciosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -------------------------------------------------------
+
   // Eliminar servicio
-  // -------------------------------------------------------
 
   Future<void> eliminarServicio(String barberiaId, String servicioId) async {
     try {

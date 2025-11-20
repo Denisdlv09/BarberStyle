@@ -134,9 +134,8 @@ class _BarberiaDetalleBodyState extends State<_BarberiaDetalleBody> {
 
             const SizedBox(height: 30),
 
-            // -----------------------------------------------------
-            // 🔥 SELECCIÓN DE BARBERO (NUEVO + ESTILO MODERNO)
-            // -----------------------------------------------------
+
+            //  SELECCIÓN DE BARBERO
 
             const Text(
               "Elige un barbero",
@@ -199,9 +198,8 @@ class _BarberiaDetalleBodyState extends State<_BarberiaDetalleBody> {
 
             const SizedBox(height: 30),
 
-            // -----------------------------------------------------
+
             // BOTÓN PEDIR CITA (bloqueado si no eligió barbero)
-            // -----------------------------------------------------
             Center(
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(

@@ -57,7 +57,7 @@ class _ConfiguracionUsuarioState extends State<ConfiguracionUsuario> {
               ),
               const SizedBox(height: 30),
 
-              // 🔹 Nombre
+              //  Nombre
               TextFormField(
                 controller: _nombreController,
                 style: const TextStyle(color: Colors.white),
@@ -75,7 +75,7 @@ class _ConfiguracionUsuarioState extends State<ConfiguracionUsuario> {
               ),
               const SizedBox(height: 20),
 
-              // 🔹 Teléfono
+              //  Teléfono
               TextFormField(
                 controller: _telefonoController,
                 style: const TextStyle(color: Colors.white),
@@ -122,7 +122,7 @@ class _ConfiguracionUsuarioState extends State<ConfiguracionUsuario> {
               const Divider(color: Colors.white24),
               const SizedBox(height: 10),
 
-              // 🔹 Eliminar cuenta
+              //  Eliminar cuenta
               ElevatedButton.icon(
                 onPressed: () async {
                   final confirmar = await showDialog<bool>(

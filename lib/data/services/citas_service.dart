@@ -65,7 +65,7 @@ class CitaService {
   Stream<List<CitaModel>> obtenerCitasPorBarberia(String barberiaId) async* {
     final barberiaRef = _db.collection('barberias').doc(barberiaId);
 
-    // 1. obtener barberos
+    //  obtener barberos
     final barberosSnap = await barberiaRef.collection('barberos').get();
     final barberoIds = barberosSnap.docs.map((d) => d.id).toList();
 

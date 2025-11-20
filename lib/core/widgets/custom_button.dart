@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 
-/// 🔘 Botón personalizado reutilizable
+///  Botón personalizado reutilizable
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;

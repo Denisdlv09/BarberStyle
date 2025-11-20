@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// 📌 Modelo de Reseña
+///  Modelo de Reseña
 class ReviewModel {
   final String id;
   final String userId;
@@ -47,7 +47,7 @@ class ReviewModel {
     };
   }
 
-  /// 🔹 Maneja Timestamp, String y DateTime
+  ///  Maneja Timestamp, String y DateTime
   static DateTime _parseDate(dynamic value) {
     if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();

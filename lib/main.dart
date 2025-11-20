@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'App/myapp.dart';
 import 'firebase_options.dart';
 
-// 🔹 ViewModels globales
+//  ViewModels globales
 import 'package:barberstyle/viewmodels/auth_viewmodel.dart';
 import 'package:barberstyle/viewmodels/user_viewmodel.dart';
 import 'package:barberstyle/viewmodels/citas_viewmodel.dart';
@@ -21,7 +21,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 🔹 MultiProvider con todos los ViewModels necesarios
+  //  MultiProvider con todos los ViewModels necesarios
   runApp(
     MultiProvider(
       providers: [

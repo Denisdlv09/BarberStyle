@@ -10,15 +10,15 @@ import '../widgets/horas_disponibles.dart';
 class ReservarCita extends StatelessWidget {
   final String barberiaId;
   final String barberiaNombre;
-  final String barberoId;                // ← AÑADIDO
-  final String barberoNombre;            // ← AÑADIDO
+  final String barberoId;
+  final String barberoNombre;
 
   const ReservarCita({
     super.key,
     required this.barberiaId,
     required this.barberiaNombre,
-    required this.barberoId,             // ←
-    required this.barberoNombre,         // ←
+    required this.barberoId,
+    required this.barberoNombre,
   });
 
   @override
@@ -61,7 +61,7 @@ class _ReservarCitaView extends StatelessWidget {
         child: SingleChildScrollView(
           child:
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // ------------------ BARBERO SELECCIONADO ------------------
+            //  BARBERO SELECCIONADO
             Text("Barbero seleccionado:",
                 style: const TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
@@ -80,7 +80,7 @@ class _ReservarCitaView extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ------------------ SERVICIOS ------------------
+            //  SERVICIOS
             const Text("Servicio:",
                 style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
@@ -113,7 +113,7 @@ class _ReservarCitaView extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ------------------ FECHA ------------------
+            //  FECHA
             const Text("Fecha:",
                 style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),
@@ -154,7 +154,7 @@ class _ReservarCitaView extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ------------------ HORAS ------------------
+            //  HORAS
             const Text("Hora:",
                 style: TextStyle(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 8),

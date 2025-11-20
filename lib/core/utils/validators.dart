@@ -1,5 +1,5 @@
 class Validators {
-  /// 🔹 No vacío
+  ///  No vacío
   static String? validateNotEmpty(String? value, {String fieldName = 'Campo'}) {
     if (value == null || value.trim().isEmpty) {
       return '$fieldName no puede estar vacío';
@@ -7,7 +7,7 @@ class Validators {
     return null;
   }
 
-  /// 🔹 Email
+  ///  Email
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'El correo no puede estar vacío';
 
@@ -17,21 +17,21 @@ class Validators {
     return null;
   }
 
-  /// 🔹 Contraseña
+  ///  Contraseña
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'La contraseña no puede estar vacía';
     if (value.length < 6) return 'Debe tener al menos 6 caracteres';
     return null;
   }
 
-  /// 🔹 Nombre
+  ///  Nombre
   static String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) return 'El nombre no puede estar vacío';
     if (value.trim().length < 3) return 'Debe contener al menos 3 caracteres';
     return null;
   }
 
-  /// 🔹 Teléfono (obligatorio en el registro)
+  ///  Teléfono (obligatorio en el registro)
   ///
   /// Acepta:
   ///   - 9 dígitos (España)
@@ -54,7 +54,7 @@ class Validators {
     return null;
   }
 
-  /// 🔹 Precio numérico válido
+  ///  Precio numérico válido
   static String? validatePrice(String? value) {
     if (value == null || value.isEmpty) return 'Ingresa un precio';
     final num? price = num.tryParse(value);
@@ -62,7 +62,7 @@ class Validators {
     return null;
   }
 
-  /// 🔹 Duración en minutos (entero)
+  ///  Duración en minutos (entero)
   static String? validateDuration(String? value) {
     if (value == null || value.isEmpty) return 'Ingresa la duración';
     final int? min = int.tryParse(value);

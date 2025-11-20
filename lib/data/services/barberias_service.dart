@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class BarberiasService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// 🔹 Obtener barbería por ID de propietario
+  ///  Obtener barbería por ID de propietario
   Future<Map<String, dynamic>?> getBarberiaByAdmin(String adminId) async {
     try {
       final query = await _db
@@ -24,7 +24,7 @@ class BarberiasService {
     }
   }
 
-  /// 🔹 Crear barbería y devolver ID
+  ///  Crear barbería y devolver ID
   Future<String> crearBarberia(Map<String, dynamic> data) async {
     try {
       final doc = await _db.collection("barberias").add(data);
@@ -34,7 +34,7 @@ class BarberiasService {
     }
   }
 
-  /// 🔹 Actualizar barbería
+  ///  Actualizar barbería
   Future<void> actualizarBarberia(String id, Map<String, dynamic> data) async {
     try {
       await _db.collection("barberias").doc(id).update(data);

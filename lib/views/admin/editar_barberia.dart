@@ -42,7 +42,7 @@ class _EditarBarberiaState extends State<EditarBarberia> {
 
   Future<void> cargarDatos() async {
     final vm = context.read<BarberiasViewModel>();
-    // Asegúrate de que barberiaData esté cargada (puede venir de loadBarberiaByAdmin)
+
     final data = vm.barberiaData;
 
     if (data != null) {
@@ -174,9 +174,8 @@ class _EditarBarberiaState extends State<EditarBarberia> {
 
             const SizedBox(height: 30),
 
-            // -----------------------------------------------------
+
             //  GESTIÓN DE BARBEROS (lectura en tiempo real)
-            // -----------------------------------------------------
             Align(
               alignment: Alignment.centerLeft,
               child: Text("Barberos", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -218,7 +217,7 @@ class _EditarBarberiaState extends State<EditarBarberia> {
 
             const SizedBox(height: 16),
 
-            // Listado real-time de barberos
+            // Listado a tiempo real de barberos
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance

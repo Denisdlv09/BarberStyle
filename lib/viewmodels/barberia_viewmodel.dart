@@ -12,28 +12,28 @@ class BarberiaViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> servicios = [];
   double ratingPromedio = 0;
 
-  /// 🔥 NUEVO: Lista de barberos
+  ///  Lista de barberos
   List<Map<String, dynamic>> barberos = [];
 
-  /// 🔥 NUEVO: Barbero seleccionado
+  ///  Barbero seleccionado
   String? barberoSeleccionadoId;
   String? barberoSeleccionadoNombre;
 
   StreamSubscription<DocumentSnapshot>? _barberiaListener;
   StreamSubscription<QuerySnapshot>? _serviciosListener;
 
-  /// 🔥 NUEVO: Listener barberos
+  ///  Listener barberos
   StreamSubscription<QuerySnapshot>? _barberosListener;
 
-  // =====================================================
+
   // Cargar todo de la barbería
-  // =====================================================
+
   Future<void> cargarBarberia(String barberiaId) async {
     isLoading = true;
     notifyListeners();
 
     try {
-      // ---------- BARBERÍA ----------
+      //  BARBERÍA
       _barberiaListener = _db
           .collection('barberias')
           .doc(barberiaId)
@@ -46,7 +46,7 @@ class BarberiaViewModel extends ChangeNotifier {
         notifyListeners();
       });
 
-      // ---------- SERVICIOS ----------
+      //  SERVICIOS
       _serviciosListener = _db
           .collection('barberias')
           .doc(barberiaId)
@@ -60,7 +60,7 @@ class BarberiaViewModel extends ChangeNotifier {
         notifyListeners();
       });
 
-      // ---------- 🔥 BARBEROS ----------
+      //  BARBEROS
       _barberosListener = _db
           .collection('barberias')
           .doc(barberiaId)
@@ -82,9 +82,8 @@ class BarberiaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // =====================================================
-  // 🔥 Seleccionar barbero
-  // =====================================================
+
+  //  Seleccionar barbero
   void seleccionarBarbero(String id, String nombre) {
     barberoSeleccionadoId = id;
     barberoSeleccionadoNombre = nombre;
@@ -92,9 +91,8 @@ class BarberiaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // =====================================================
-  // 🔥 Reset barbero
-  // =====================================================
+
+  //  Reset barbero
   void limpiarBarbero() {
     barberoSeleccionadoId = null;
     barberoSeleccionadoNombre = null;
@@ -102,7 +100,7 @@ class BarberiaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // =====================================================
+
   @override
   void dispose() {
     _barberiaListener?.cancel();

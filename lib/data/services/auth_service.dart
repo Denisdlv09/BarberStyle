@@ -6,9 +6,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// -------------------------------------------------------
-  /// 🔹 Registrar usuario
-  /// -------------------------------------------------------
+
+  ///  Registrar usuario
   Future<UserModel> register({
     required String nombre,
     required String email,
@@ -37,9 +36,8 @@ class AuthService {
     }
   }
 
-  /// -------------------------------------------------------
-  /// 🔹 Login
-  /// -------------------------------------------------------
+
+  ///  Login
   Future<UserModel> signIn(String email, String password) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(
@@ -59,10 +57,9 @@ class AuthService {
     }
   }
 
-  /// -------------------------------------------------------
-  /// 🔹 Obtener usuario actual desde Firestore
+
+  ///  Obtener usuario actual desde Firestore
   ///     (Método que usa AuthViewModel)
-  /// -------------------------------------------------------
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user == null) return null;
@@ -73,9 +70,8 @@ class AuthService {
     return UserModel.fromMap(doc.data()!, doc.id);
   }
 
-  /// -------------------------------------------------------
-  /// 🔹 Logout
-  /// -------------------------------------------------------
+
+  ///  Logout
   Future<void> signOut() async {
     await _auth.signOut();
   }

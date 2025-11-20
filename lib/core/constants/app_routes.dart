@@ -1,4 +1,4 @@
-/// 🗺️ Rutas centralizadas de la aplicación
+///  Rutas centralizadas de la aplicación
 class AppRoutes {
   AppRoutes._(); // Evita instanciación
 
