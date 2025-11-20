@@ -104,7 +104,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
   }
 
   // ----------------------------
-  // Crear cita
+  // Crear cita (CORREGIDO: Eliminada la escritura duplicada)
   // ----------------------------
   Future<String?> crearCita({
     required String barberiaId,
@@ -144,7 +144,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
         int.parse(partes[1]),
       );
 
-      // validar disponibilidad
+      // validar disponibilidad (Chequea la ruta correcta del barbero, lo mantenemos)
       final check = await _db
           .collection('barberias')
           .doc(barberiaId)
@@ -178,31 +178,52 @@ class ReservarCitaViewModel extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      // cita principal
+      // -------------------------------------------------------------
+      // CORRECCIÓN: Usamos esta referencia para guardar en la ruta correcta.
+      // Eliminamos la escritura en la colección "citas" de la barbería.
+      // -------------------------------------------------------------
       final citaRef = _db
+          .collection("barberias")
+          .doc(barberiaId)
+          .collection("barberos") // RUTA CORRECTA AÑADIDA
+          .doc(barberoSeleccionadoId) // RUTA CORRECTA AÑADIDA
+          .collection("citas")
+          .doc();
+
+      // 1. Guardamos la cita SOLO en la ruta del BARBERO
+      await citaRef.set(data);
+
+      // 2. ELIMINAMOS el bloque que duplicaba la escritura en la colección
+      //    /barberias/{id}/citas/
+      /*
+      // cita principal (ESCRITURA DUPLICADA - ELIMINADA)
+      final citaRefOld = _db
           .collection("barberias")
           .doc(barberiaId)
           .collection("citas")
           .doc();
 
-      await citaRef.set(data);
+      await citaRefOld.set(data);
 
-      // cita en barbero
+      // 3. ELIMINAMOS el bloque que volvía a guardar en la ruta del barbero
+      //    (Ahora el paso 1 ya lo hace directamente con citaRef)
       await _db
           .collection("barberias")
           .doc(barberiaId)
           .collection("barberos")
           .doc(barberoSeleccionadoId)
           .collection("citas")
-          .doc(citaRef.id)
+          .doc(citaRefOld.id) // Usaba el ID del duplicado
           .set(data);
+      */
+      // -------------------------------------------------------------
 
-      // cita en usuario
+      // 2. cita en usuario (Mantenemos, usando el ID del guardado correcto)
       await _db
           .collection("usuarios")
           .doc(user.uid)
           .collection("citas")
-          .doc(citaRef.id)
+          .doc(citaRef.id) // Usamos el ID de la cita guardada en el barbero
           .set(data);
 
       guardando = false;
