@@ -29,9 +29,8 @@ class ReservarCitaViewModel extends ChangeNotifier {
     "19:00", "19:30", "20:00", "20:30",
   ];
 
-  // ----------------------------
+
   // Selección barbero
-  // ----------------------------
   void seleccionarBarbero(String id, String nombre) {
     barberoSeleccionadoId = id;
     barberoSeleccionadoNombre = nombre;
@@ -47,9 +46,8 @@ class ReservarCitaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ----------------------------
   // Selección de fecha
-  // ----------------------------
+
   Future<void> seleccionarFecha(DateTime fecha, String barberiaId) async {
     fechaSeleccionada = fecha;
     horaSeleccionada = null;
@@ -61,9 +59,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ----------------------------
   // Horas ocupadas por BARBERO
-  // ----------------------------
   Future<void> cargarHorasOcupadas(
       String barberiaId, String barberoId) async {
     if (fechaSeleccionada == null) return;
@@ -103,9 +99,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ----------------------------
-  // Crear cita (CORREGIDO: Eliminada la escritura duplicada)
-  // ----------------------------
+  // Crear cita
   Future<String?> crearCita({
     required String barberiaId,
     required String barberiaNombre,
@@ -144,7 +138,7 @@ class ReservarCitaViewModel extends ChangeNotifier {
         int.parse(partes[1]),
       );
 
-      // validar disponibilidad (Chequea la ruta correcta del barbero, lo mantenemos)
+      // validar disponibilidad
       final check = await _db
           .collection('barberias')
           .doc(barberiaId)
@@ -178,47 +172,20 @@ class ReservarCitaViewModel extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      // -------------------------------------------------------------
-      // CORRECCIÓN: Usamos esta referencia para guardar en la ruta correcta.
-      // Eliminamos la escritura en la colección "citas" de la barbería.
-      // -------------------------------------------------------------
+
       final citaRef = _db
-          .collection("barberias")
-          .doc(barberiaId)
-          .collection("barberos") // RUTA CORRECTA AÑADIDA
-          .doc(barberoSeleccionadoId) // RUTA CORRECTA AÑADIDA
-          .collection("citas")
-          .doc();
-
-      // 1. Guardamos la cita SOLO en la ruta del BARBERO
-      await citaRef.set(data);
-
-      // 2. ELIMINAMOS el bloque que duplicaba la escritura en la colección
-      //    /barberias/{id}/citas/
-      /*
-      // cita principal (ESCRITURA DUPLICADA - ELIMINADA)
-      final citaRefOld = _db
-          .collection("barberias")
-          .doc(barberiaId)
-          .collection("citas")
-          .doc();
-
-      await citaRefOld.set(data);
-
-      // 3. ELIMINAMOS el bloque que volvía a guardar en la ruta del barbero
-      //    (Ahora el paso 1 ya lo hace directamente con citaRef)
-      await _db
           .collection("barberias")
           .doc(barberiaId)
           .collection("barberos")
           .doc(barberoSeleccionadoId)
           .collection("citas")
-          .doc(citaRefOld.id) // Usaba el ID del duplicado
-          .set(data);
-      */
-      // -------------------------------------------------------------
+          .doc();
 
-      // 2. cita en usuario (Mantenemos, usando el ID del guardado correcto)
+      //  Guardamos la cita SOLO en la ruta del BARBERO
+      await citaRef.set(data);
+
+
+      //  cita en usuario
       await _db
           .collection("usuarios")
           .doc(user.uid)
