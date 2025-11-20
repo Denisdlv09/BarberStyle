@@ -6,12 +6,15 @@ class CitaService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // ---------------------------------------------------------
-  // Crear cita
-  // ---------------------------------------------------------
+// Crear cita (CORREGIDO)
+// ---------------------------------------------------------
   Future<void> crearCita(CitaModel cita) async {
     try {
+      // ⚠️ ELIMINAMOS EL BLOQUE 'ELSE' (RUTA ANTIGUA). AHORA SOLO GUARDAMOS
+      // EN LA RUTA DEL BARBERO, PREVINIENDO LA DUPLICACIÓN EN LA COLECCIÓN PRINCIPAL.
+
       if (cita.barberoId.isNotEmpty) {
-        // Ruta nueva: barberias/{id}/barberos/{id}/citas/{id}
+        // Ruta: barberias/{id}/barberos/{id}/citas/{id}
         final ref = _db
             .collection('barberias')
             .doc(cita.barberiaId)
@@ -25,9 +28,10 @@ class CitaService {
 
         final batch = _db.batch();
 
+        // Guardado en la colección del Barbero (Fuente principal para Admin)
         batch.set(docRef, citaConId.toMap());
 
-        // Copia en usuarios
+        // Copia en usuarios (Necesario para la vista del cliente)
         batch.set(
           _db
               .collection('usuarios')
@@ -39,25 +43,9 @@ class CitaService {
 
         await batch.commit();
       } else {
-        // Ruta antigua
-        final ref = _db
-            .collection('barberias')
-            .doc(cita.barberiaId)
-            .collection('citas');
-
-        final docRef = ref.doc();
-        final newId = docRef.id;
-        final citaConId = cita.copyWith(id: newId);
-
-        await Future.wait([
-          ref.doc(newId).set(citaConId.toMap()),
-          _db
-              .collection('usuarios')
-              .doc(citaConId.clienteId)
-              .collection('citas')
-              .doc(newId)
-              .set(citaConId.toMap()),
-        ]);
+        // Si la cita no tiene barbero asignado, lanzamos un error o manejamos de otra forma.
+        // Para tu caso, si usas barberoId, esta lógica no debería alcanzarse.
+        throw Exception("No se puede crear la cita sin un ID de barbero asignado.");
       }
     } catch (e) {
       throw Exception("Error creando cita: $e");
@@ -80,8 +68,8 @@ class CitaService {
   }
 
   // ---------------------------------------------------------
-  // 🔥 Obtener citas de TODA la barbería SIN ÍNDICES
-  // ---------------------------------------------------------
+// 🔥 Obtener citas de TODA la barbería (CORREGIDO)
+// ---------------------------------------------------------
   Stream<List<CitaModel>> obtenerCitasPorBarberia(String barberiaId) async* {
     final barberiaRef = _db.collection('barberias').doc(barberiaId);
 
@@ -96,7 +84,7 @@ class CitaService {
       final s = barberiaRef
           .collection('barberos')
           .doc(barberoId)
-          .collection('citas')
+          .collection('citas') // LECTURA CORRECTA: SOLO DE LA SUBCÓLECCIÓN DEL BARBERO
           .snapshots()
           .map((snap) => snap.docs
           .map((d) => CitaModel.fromMap(d.data(), d.id))
@@ -104,15 +92,17 @@ class CitaService {
       streams.add(s);
     }
 
-    // agregar colección vieja
-    final oldStream = barberiaRef
-        .collection('citas')
-        .snapshots()
-        .map((snap) => snap.docs
-        .map((d) => CitaModel.fromMap(d.data(), d.id))
-        .toList());
+    // ⚠️ ELIMINAMOS ESTE BLOQUE:
+    /*
+  final oldStream = barberiaRef
+      .collection('citas') // ESTA ES LA RUTA QUE DUPLICA LA INFORMACIÓN
+      .snapshots()
+      .map((snap) => snap.docs
+          .map((d) => CitaModel.fromMap(d.data(), d.id))
+          .toList());
 
-    streams.add(oldStream);
+  streams.add(oldStream);
+  */
 
     // Unir todos los streams
     yield* CombineLatestStream.list<List<CitaModel>>(streams).map((listas) {
